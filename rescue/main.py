@@ -1,9 +1,11 @@
+import sys
+sys.path.insert(1, './motors-sensors')
+import Robot
 from linea import linea
 
 def rescue():
     
     errore_linea, errore_angolo = linea()
-    print(errore_linea, errore_angolo)
     
     return
 
