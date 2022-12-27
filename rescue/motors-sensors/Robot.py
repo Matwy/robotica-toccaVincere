@@ -1,6 +1,6 @@
 import time
 from PiVideoStream import PiVideoStream
-import Motors
+from Motors import Motors
 class Robot():
     def __init__(self):
         self.cam_stream = PiVideoStream().start()

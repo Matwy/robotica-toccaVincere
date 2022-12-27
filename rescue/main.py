@@ -1,14 +1,23 @@
 import sys
 sys.path.insert(1, './motors-sensors')
-import Robot
+import cv2
+from Robot import Robot
 from linea import linea
 
 def rescue(robot):
     
-    frame = robot.get_frame()
-    errore_linea, errore_angolo = linea(frame)
-    print(errore_linea, errore_angolo)
-    return
+    while True:
+        
+        frame = robot.get_frame()
+        errore_linea, errore_angolo = linea(frame)
+        print(errore_linea, errore_angolo)
+        
+        cv2.imshow("frame", frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            cv2.destroyAllWindows()
+            robot.cam_stream.stop()
+            break
 
 if __name__ == '__main__':
     robot = Robot()

@@ -1,9 +1,10 @@
 import cv2
 import numpy as np
 
-from globalVar import output, ALTEZZA, LARGHEZZA
-
+LARGHEZZA = 320
+ALTEZZA = 240
 SENSITIVITY = 180
+
 lower_white = 255-SENSITIVITY
 lower_green = np.array([20,50,25]) 
 upper_green = np.array([90,255,230])
