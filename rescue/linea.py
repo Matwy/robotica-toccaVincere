@@ -14,7 +14,7 @@ x_last = LARGHEZZA//2
 y_last = 0
 
 
-def linea(frame, motors, silver_count):
+def linea(frame):
     global x_last, y_last
     output = BLANK_COLORI.copy()
     
