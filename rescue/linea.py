@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
 import time
-from globalVar import ALTEZZA, LARGHEZZA, cam_stream
 from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_inizio_linea, get_n_aree_biance
 #incroci
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
+
+LARGHEZZA = 320
+ALTEZZA = 240
 
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')

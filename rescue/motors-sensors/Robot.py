@@ -9,3 +9,6 @@ class Robot():
     
     def get_frame(self):
         return self.cam_stream.read()
+    
+    def get_resolution(self):
+        return (self.cam_stream.LARGHEZZA, self.cam_stream.ALTEZZA)
