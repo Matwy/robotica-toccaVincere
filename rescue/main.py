@@ -3,6 +3,7 @@ sys.path.insert(1, './motors-sensors')
 import cv2
 from Robot import Robot
 from linea import linea
+import time
 
 def rescue(robot):
     
@@ -12,7 +13,7 @@ def rescue(robot):
         """
         frame = robot.get_frame()
         errore_linea, errore_angolo = linea(frame)
-        robot.motors.motors(100, 50)
+        robot.motors.motors(-100, 50)
         
         """
         OSTACOLO
