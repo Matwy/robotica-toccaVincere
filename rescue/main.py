@@ -12,7 +12,7 @@ def rescue(robot):
         """
         frame = robot.get_frame()
         errore_linea, errore_angolo = linea(frame)
-        print(errore_linea, errore_angolo)
+        robot.motors.motors(100, 50)
         
         """
         OSTACOLO
@@ -25,6 +25,7 @@ def rescue(robot):
         if key == ord("q"):
             cv2.destroyAllWindows()
             robot.cam_stream.stop()
+            robot.sensors_stream.stop()
             break
 
 if __name__ == '__main__':

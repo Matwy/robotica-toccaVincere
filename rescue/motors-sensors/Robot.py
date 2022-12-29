@@ -10,7 +10,7 @@ class Robot():
         self.motors = Motors()
     
     def get_tof_mesures(self):
-        self.sensors_stream.get_range()
+        return self.sensors_stream.get_range()
     def get_frame(self):
         return self.cam_stream.read()
     
