@@ -13,7 +13,6 @@ void setup()
 {
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(receiveData);
-  Serial.begin(9600);
   DualMC33926MotorShield();
   md.init();
 }
@@ -52,7 +51,5 @@ void receiveData(int bytecount)
     }
   }
   decodeString();
-  Serial.println(n_motore);
-  Serial.println(value);
 }
 
