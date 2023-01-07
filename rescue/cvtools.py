@@ -86,7 +86,7 @@ def sort_aree(amount, labels, coordinata):
 
 def calcola_inizio_linea(mask, amount, labels):
     if(amount < 3):
-        return
+        return (ALTEZZA, LARGHEZZA//2), (ALTEZZA, LARGHEZZA//2)
     #trovo le due aree più basse
     aree = sort_aree(amount, labels, 1)
     area1, area2 = aree[-1], aree[-2]
