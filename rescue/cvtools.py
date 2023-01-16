@@ -28,6 +28,10 @@ cv2.rectangle(MASK_BORDI, (10, 10), (LARGHEZZA-10, ALTEZZA), (255), -1)
 MASK_BORDI = cv2.bitwise_not(MASK_BORDI)
 
 def scan(img):
+    #rimuovo i pezzi di robot che si vedono nell'immagine
+    cv2.rectangle(img, (0, ALTEZZA-90), (60, ALTEZZA), (255,255,255), -1)
+    cv2.rectangle(img, (LARGHEZZA-60, ALTEZZA-90), (LARGHEZZA, ALTEZZA), (255,255,255), -1)
+    
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
     verde=cv2.erode(verde,KERNEL,iterations=3)
@@ -41,7 +45,7 @@ def scan(img):
 
     bianco=cv2.dilate(bianco,KERNEL,iterations=2)
     bianco=cv2.erode(bianco,KERNEL,iterations=3)
-
+    cv2.imshow("debug bianco", bianco)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde

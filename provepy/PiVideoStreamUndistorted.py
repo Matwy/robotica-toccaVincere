@@ -1,7 +1,9 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from threading import Thread
+import numpy as np
 import cv2
+import yaml
 
 class PiVideoStream:
     def __init__(self, resolution=(320, 240), framerate=32):
@@ -17,6 +19,13 @@ class PiVideoStream:
         # if the thread should be stopped
         self.frame = None
         self.stopped = False
+
+        with open("calibration_matrix.yaml", "r") as f:
+            data = yaml.load(f, Loader=yaml.FullLoader)
+
+        self.mtx = np.array(data['camera_matrix'])
+        self.dist = np.array(data['dist_coeff'])
+        self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist, resolution, 1, resolution)
     
     def start(self):
     # start the thread to read frames from the video stream
@@ -26,8 +35,12 @@ class PiVideoStream:
         # keep looping infinitely until the thread is stopped
         for f in self.stream:
             # grab the frame from the stream and clear the stream in
-            # preparation for the next frame
-            self.frame = f.array
+            # undistort
+            dst = cv2.undistort(f.array, self.mtx, self.dist, None, self.newcameramtx)
+            # crop the image
+            x, y, w, h = self.roi
+            dst = dst[y:y+h, x:x+w]
+            self.frame = dst
             self.rawCapture.truncate(0)
             # if the thread indicator variable is set, stop the thread
             # and resource camera resources

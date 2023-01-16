@@ -10,16 +10,22 @@ from adafruit_bus_device import i2c_device
 
 class Motors():
 
-    M_LEFT = 0
-    M_RIGHT = 1
+    M_LEFT = 1
+    M_RIGHT = 0
     
     def __init__(self):
         i2c_bus = busio.I2C(SCL, SDA)
         self.arduinoi2c = i2c_device.I2CDevice(i2c_bus, 0x10)
     
     def send_motor_power(self, motor, power):
+        if(power > 100):
+            power = 100
+        if(power < -100):
+            power = -100
+        
         if (power < 0):
             power = 256 - abs(power)
+        
         data = [motor, power]
         try:
             self.arduinoi2c.write(bytes(data))

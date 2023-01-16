@@ -13,18 +13,18 @@ def rescue(robot):
         """
         frame = robot.get_frame()
         errore_linea, errore_angolo = linea(frame)
-        mid = 320//2
-        pwr = (mid - errore_linea)//5
-        if pwr > 0: 
-            robot.motors.motors(20-pwr, 20)
-        else:
-            robot.motors.motors(20, 20+pwr)
-            
+        
+        speed = -30
+        kp, ki, kd = 0, 1, 3
+        PID = int(errore_linea*kp) + int(errore_angolo*kd)
+        print(errore_linea, errore_angolo)
+        robot.motors.motors(speed + PID, speed + PID)
+                
         """
         OSTACOLO
         """
         tof_mesures = robot.get_tof_mesures()
-        print(tof_mesures)
+        #print(tof_mesures)
         
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
