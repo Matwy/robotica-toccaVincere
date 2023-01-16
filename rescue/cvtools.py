@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-LARGHEZZA = 320
-ALTEZZA = 240
+LARGHEZZA = 176
+ALTEZZA = 137
 SENSITIVITY = 180
 
 lower_white = 255-SENSITIVITY
@@ -24,13 +24,13 @@ BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 #maschera del bordo sx top dx
 #la uso per vedere dove "esce" la linea
 MASK_BORDI = BLANK.copy()
-cv2.rectangle(MASK_BORDI, (10, 10), (LARGHEZZA-10, ALTEZZA), (255), -1)
+cv2.rectangle(MASK_BORDI, (5, 5), (LARGHEZZA-5, ALTEZZA), (255), -1)
 MASK_BORDI = cv2.bitwise_not(MASK_BORDI)
 
 def scan(img):
     #rimuovo i pezzi di robot che si vedono nell'immagine
-    cv2.rectangle(img, (0, ALTEZZA-90), (60, ALTEZZA), (255,255,255), -1)
-    cv2.rectangle(img, (LARGHEZZA-60, ALTEZZA-90), (LARGHEZZA, ALTEZZA), (255,255,255), -1)
+    #cv2.rectangle(img, (0, ALTEZZA-90), (60, ALTEZZA), (255,255,255), -1)
+    #cv2.rectangle(img, (LARGHEZZA-60, ALTEZZA-90), (LARGHEZZA, ALTEZZA), (255,255,255), -1)
     
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
@@ -63,7 +63,7 @@ def get_bigger_area(mask):
         if area_nonzero > bigger_area[1]:
             bigger_area = (area, area_nonzero)
     
-    if bigger_area[1] < 5500:
+    if bigger_area[1] < 1000: #5500
         return BLANK.copy()
     
     return bigger_area[0]
@@ -123,7 +123,7 @@ def get_n_aree_biance(amount, labels):
         area_bianca = BLANK.copy()
         area_bianca[labels == i] = 255
         n_punti_bianchi = np.count_nonzero(area_bianca)
-        if n_punti_bianchi > 1800:
+        if n_punti_bianchi > 1000:
             n_aree += 1
     return n_aree
 
