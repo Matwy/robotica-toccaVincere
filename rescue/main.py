@@ -12,7 +12,7 @@ def rescue(robot):
         LINEA
         """
         frame = robot.get_frame()
-        errore_linea, errore_angolo = linea(frame)
+        errore_linea, errore_angolo = linea(frame, robot)
         
         speed = -55
         kp, ki, kd = 2, 1, 2.2

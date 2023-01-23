@@ -289,7 +289,7 @@ def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
     verdi_vicini_incrocio = []
     for verde in verdi_sotto_incrocio:
         d = distanza_punti(verde, centro_incrocio)
-        if d < 130:
+        if d < 50:
             print("d", d)
             verdi_vicini_incrocio.append(verde)
     print("verdi vicini a incrocio", verdi_vicini_incrocio)

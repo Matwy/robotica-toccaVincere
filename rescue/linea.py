@@ -5,7 +5,7 @@ from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_ini
 #incroci
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
-
+from gap_dopio import doppio_verde
 LARGHEZZA = 176-40
 ALTEZZA = 137
 
@@ -15,9 +15,10 @@ BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')
 x_last = LARGHEZZA//2
 y_last = 0
 
+doppio_verde_counter = 0
 
-def linea(frame):
-    global x_last, y_last
+def linea(frame, robot):
+    global x_last, y_last, doppio_verde_counter
     output = BLANK_COLORI.copy()
     
     #pulisco l'immagine
@@ -80,13 +81,23 @@ def linea(frame):
         verdi = get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo)
         for verde in verdi:
             cv2.circle(output, verde, 10, (0,150,255), 2)
+
+        """NO VERDI"""
         if len(verdi) == 0:
             #rimuove tutte le collisioni tranne la più ampia che tolgo con lo slicing
             rimuovi_collisioni(mask, output, centro_incrocio, collisioni_angoli[:-1])
+        
+        """UN VERDE"""
         if len(verdi) == 1:
             taglio_verde_singolo(mask, output, centro_incrocio, verdi[0])
-        #if len(verdi) == 2:
-            #DOPPIOVERDE
+        
+        """DOPPIOVERDE"""
+        if len(verdi) == 2:
+            doppio_verde_counter += 1
+            if doppio_verde_counter > 6: # se vede due verdi per 6 volte di fila
+                doppio_verde(robot)
+        else:
+            doppio_verde_counter = 0
 
 
     #trova i punti alti della linea e decidi quale seguire tenendo in considerazione quello precedente
