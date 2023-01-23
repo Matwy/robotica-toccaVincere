@@ -293,6 +293,7 @@ def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
             print("d", d)
             verdi_vicini_incrocio.append(verde)
     print("verdi vicini a incrocio", verdi_vicini_incrocio)
+    print("incrocio", centro_incrocio)
     #se ci sono due verdi validi allora controllo che siano
     #  uno a destra e l'altro a sinistra dell'incrocio
     if len(verdi_vicini_incrocio) == 2:
