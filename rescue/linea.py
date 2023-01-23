@@ -6,7 +6,7 @@ from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_ini
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
 
-LARGHEZZA = 176
+LARGHEZZA = 176-40
 ALTEZZA = 137
 
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
@@ -65,7 +65,7 @@ def linea(frame):
     if n_aree_bianche > 2:
         #trovo centor incrocio e lo mostro
         centro_incrocio = get_centro_incrocio(amount_bianco, labels_bianco)
-        cv2.circle(output, centro_incrocio, 50, (0,0,255), 2)
+        cv2.circle(output, centro_incrocio, 30, (0,0,255), 2)
         if centro_incrocio == None:
             return punto_basso[0] - (LARGHEZZA//2), 0
 
@@ -79,7 +79,7 @@ def linea(frame):
         
         verdi = get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo)
         for verde in verdi:
-            cv2.circle(output, verde, 15, (0,150,255), 2)
+            cv2.circle(output, verde, 10, (0,150,255), 2)
         if len(verdi) == 0:
             #rimuove tutte le collisioni tranne la più ampia che tolgo con lo slicing
             rimuovi_collisioni(mask, output, centro_incrocio, collisioni_angoli[:-1])
@@ -94,7 +94,7 @@ def linea(frame):
     #trovo le collisioni con la parte più alta dello schermo
     punto_alto = get_punto_alto(mask, x_last, y_last)
     x_last, y_last = punto_alto
-    cv2.circle(output, punto_alto, 30, (230,230,50), 2)
+    cv2.circle(output, punto_alto, 20, (230,230,50), 2)
 
     #trova errore angolo
     errore_angolo = getAngle(punto_basso, (0, ALTEZZA), punto_alto) #angolo tra l'angolo in basso sx il punto basso della linea e la parte alta della linea

@@ -14,12 +14,11 @@ def rescue(robot):
         frame = robot.get_frame()
         errore_linea, errore_angolo = linea(frame)
         
-        speed = -30
-        kp, ki, kd = 0, 1, 3
-        PID = int(errore_linea*kp) + int(errore_angolo*kd)
-        print(errore_linea, errore_angolo)
-        robot.motors.motors(speed + PID, speed + PID)
-                
+        speed = -50
+        kp, ki, kd = 1.6, 1, 2
+        P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
+        print("P = ", P, "   D =", D, "   time =", time.time())
+        robot.motors.motors(speed - (P+D), speed + (P+D))
         """
         OSTACOLO
         """

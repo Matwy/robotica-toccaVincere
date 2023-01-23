@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-LARGHEZZA = 176
+LARGHEZZA = 176-40
 ALTEZZA = 137
-SENSITIVITY = 180
+SENSITIVITY = 170
 
 lower_white = 255-SENSITIVITY
 lower_green = np.array([20,50,25]) 
@@ -17,7 +17,7 @@ upper_red = np.array([20,255,240])
 lower_red2 = np.array([130,70,90])
 upper_red2 = np.array([255,255,240])
 
-KERNEL = np.ones((7,7), np.uint8)
+KERNEL = np.ones((5,5), np.uint8)
 
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 
@@ -29,8 +29,8 @@ MASK_BORDI = cv2.bitwise_not(MASK_BORDI)
 
 def scan(img):
     #rimuovo i pezzi di robot che si vedono nell'immagine
-    #cv2.rectangle(img, (0, ALTEZZA-90), (60, ALTEZZA), (255,255,255), -1)
-    #cv2.rectangle(img, (LARGHEZZA-60, ALTEZZA-90), (LARGHEZZA, ALTEZZA), (255,255,255), -1)
+    #cv2.rectangle(img, (0, ALTEZZA-50), (10, ALTEZZA), (255,255,255), -1)
+    #cv2.rectangle(img, (LARGHEZZA- 15, ALTEZZA-60), (LARGHEZZA, ALTEZZA), (255,255,255), -1)
     
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
@@ -43,8 +43,8 @@ def scan(img):
     
     bianco[verde == 255] = 255 #tolgo l'eventuale verde dal nero aggiungendolo al bianco
 
-    bianco=cv2.dilate(bianco,KERNEL,iterations=2)
-    bianco=cv2.erode(bianco,KERNEL,iterations=3)
+    bianco=cv2.dilate(bianco,KERNEL,iterations=1)
+    bianco=cv2.erode(bianco,KERNEL,iterations=4)
     cv2.imshow("debug bianco", bianco)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
@@ -180,7 +180,7 @@ def getAngle(vertice, p1, p2):
 
 def get_centro_incrocio(amount, labels):
     
-    kernel=np.ones((100, 100),np.uint8)
+    kernel=np.ones((60, 60),np.uint8)
     mask_somma_aree=BLANK.copy()
 
     #dilato tutte le aree e trovo dove si intersecano        
@@ -195,7 +195,7 @@ def get_centro_incrocio(amount, labels):
 
     #il valore più alto sarà dove si sono intersecate più aree quindi l'incrocio
     #max_val = np.max(mask_somma_aree) 
-
+    cv2.imshow("incroci", mask_somma_aree)
     mask_incrocio = BLANK.copy()
     mask_incrocio[mask_somma_aree > 103] = 255
     
@@ -325,10 +325,10 @@ def taglio_verde_singolo(mask, output, centro_incrocio, punto_verde):
     
     if punto_verde[0] < centro_incrocio[0]:
         #verde sx  
-        points = np.array([(LARGHEZZA, 0), (LARGHEZZA, p2[1]+50), p2, p1, (p1[0], 0)])
+        points = np.array([(LARGHEZZA, 0), (LARGHEZZA, p2[1]+30), p2, p1, (p1[0], 0)])
     else:
         #verde dx
-        points = np.array([(0,0), (0, p2[1]+50), p2, p1, (p1[0], 0)])
+        points = np.array([(0,0), (0, p2[1]+30), p2, p1, (p1[0], 0)])
     
     cv2.fillPoly(mask, pts=[points], color=(0))
     cv2.fillPoly(output, pts=[points], color=(240, 240, 240))

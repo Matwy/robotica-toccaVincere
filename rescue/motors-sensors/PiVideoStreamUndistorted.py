@@ -12,7 +12,7 @@ class PiVideoStream:
         self.camera.resolution = resolution
         self.camera.framerate = framerate
         #self.camera.rotation = 180
-        self.camera.brightness = 50 #50
+        self.camera.brightness = 52 #50
         self.rawCapture = PiRGBArray(self.camera, size=resolution)
         self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
         # initialize the frame and the variable used to indicate
@@ -41,6 +41,9 @@ class PiVideoStream:
             dst = cv2.undistort(f.array, self.mtx, self.dist, None, self.newcameramtx)
             # crop the image
             x, y, w, h = self.roi
+            x += 15
+            w -= 40
+
             dst = dst[y:y+h, x:x+w]
             self.frame = dst
             self.rawCapture.truncate(0)
