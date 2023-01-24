@@ -3,10 +3,11 @@ sys.path.insert(1, './motors-sensors')
 import cv2
 from Robot import Robot
 from linea import linea
+from ostacolo import ostacolo
 import time
 
 def rescue(robot):
-    
+    ostacolo_count = 0    
     while True:
         """
         LINEA
@@ -22,9 +23,16 @@ def rescue(robot):
         """
         OSTACOLO
         """
-        tof_mesures = robot.get_tof_mesures()
-        #print(tof_mesures)
+        front_tof, _, _ = robot.get_tof_mesures()
+        if front_tof < 50:
+            ostacolo_count += 1
+            print(front_tof, "      count", ostacolo_count)
+        else:
+            ostacolo_count = 0
         
+        #if ostacolo_count > 10:
+        #    ostacolo(robot)
+
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):

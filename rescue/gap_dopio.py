@@ -1,8 +1,7 @@
 import cv2
 from cvtools import scan, get_bigger_area
 import time
-LARGHEZZA = 176-40
-ALTEZZA = 137
+from global_var import ALTEZZA, LARGHEZZA
 
 def doppio_verde(robot):
     robot.motors.motors(0, 0)
@@ -21,7 +20,6 @@ def doppio_verde(robot):
             cv2.circle(frame, (x,ALTEZZA), 10, (190, 170, 200), -1)
         else:
             x = 0
-
 
         #trovo il centro dei verdi per capire quanto sono distante 
         M = cv2.moments(mask_verde) 

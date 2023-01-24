@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-LARGHEZZA = 176-40
-ALTEZZA = 137
+from global_var import ALTEZZA, LARGHEZZA
+
 SENSITIVITY = 170
 
 lower_white = 255-SENSITIVITY
@@ -67,6 +67,21 @@ def get_bigger_area(mask):
         return BLANK.copy()
     
     return bigger_area[0]
+
+def get_area_with_last_point(mask, x_last, y_last):
+    amount, labels = cv2.connectedComponents(mask)
+    selected_area = None
+    
+    for i in range(1, amount):
+        area = BLANK.copy()
+        area[labels == i] = 255
+        
+        #se l'area è nera dove c'è la xy_last selezionala
+        if area[x_last][y_last] == 255:
+            selected_area = area
+
+    return selected_area
+
 
 def sort_aree(amount, labels, coordinata):
     aree = []
