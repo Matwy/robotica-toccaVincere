@@ -1,5 +1,5 @@
 import cv2
-from cvtools import scan, get_bigger_area, scan_nero
+from cvtools import scan, get_bigger_area, scan_nero, sort_aree
 import time
 from global_var import ALTEZZA, LARGHEZZA
 
@@ -71,31 +71,58 @@ def doppio_verde(robot):
             cv2.destroyAllWindows()
             exit()
 
+def is_gap(frame):
+    _, mask_bianco, _ = scan(frame)
+    amount_bianco, _ = cv2.connectedComponents(mask_bianco)
+    if amount_bianco >= 3:
+        return False
+    
+    return True
+    
+
 def gap(robot):
     cv2.destroyAllWindows()
-    robot.servo.set_cam_angle(140)
+    #robot.servo.set_cam_angle(140)
     while True:
         frame = robot.get_frame()
         
-        _, mask_bianco, _ = scan(frame)
-        amount_bianco, _ = cv2.connectedComponents(mask_bianco)
-        if amount_bianco >= 3:
-            robot.servo.cam_linea()
-            break # no gap
-
-        mask_nero = scan_nero(frame)
-        amount, labels = cv2.connectedComponents(mask_nero)
-        aree = sort_aree(amount, labels, 1) # prende le aree di nero e le ordina per la y
+        mask_nero, _, mask_verde = scan(frame)
         
-        M = cv2.moments(aree[-1])
+        # prendo come roi la parte bassa della linea nera e calcolo l'errore
+        area_alta = mask_nero[:, 30:-30]
+        M = cv2.moments(area_alta)
         if M["m00"] != 0:
             x = int(M["m10"] / M["m00"])
-            cv2.circle(frame, (x,ALTEZZA), 10, (190, 170, 200), -1)
         else:
             x = 0
+
+        """ QUIT GAP """
+        if not is_gap(frame): 
+            robot.servo.cam_linea()
+            break 
+
+        mask_nero = scan_nero(frame)
+        #amount, labels = cv2.connectedComponents(mask_nero)
+        #area_alta = sort_aree(amount, labels, 1)[-1] # prende le aree di nero e le ordina per la y
+        #area_alta = area_alta[:, 30:-30]
+        cv2.imshow("area_alta", mask_nero)  
+        """ TROVA CENTRO LINEA ALTA """
+        M = cv2.moments(mask_nero)
+        if M["m00"] != 0:
+            cx = int(M["m10"] / M["m00"])
+            cv2.circle(frame, (cx,ALTEZZA), 10, (190, 170, 200), -1)
+        else:
+            cx = 0
+        print(cx)
         
+        # uso una correzione proporzionale per centrarmi
+        sp = 20
+        kp = 4
+        errore = cx - (LARGHEZZA//2)
+        robot.motors.motors(sp + (errore*kp), sp - (errore*kp))
 
-
+        cv2.circle(frame, (x,ALTEZZA), 10, (190, 170, 200), -1)
+        cv2.imshow("gapping", frame)  
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             robot.motors.motors(0, 0)

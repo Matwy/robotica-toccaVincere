@@ -45,7 +45,7 @@ def scan(img):
 
     bianco=cv2.dilate(bianco,KERNEL,iterations=1)
     bianco=cv2.erode(bianco,KERNEL,iterations=4)
-    cv2.imshow("debug bianco", bianco)
+    #cv2.imshow("debug bianco", bianco)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde
@@ -56,7 +56,6 @@ def scan_nero(img):
 
     mask_nero=cv2.erode(mask_nero,KERNEL,iterations=6)
     mask_nero=cv2.dilate(mask_nero,KERNEL,iterations=4)
-    cv2.imshow("debug", mask_nero)
     return mask_nero
 
 def get_bigger_area(mask):
