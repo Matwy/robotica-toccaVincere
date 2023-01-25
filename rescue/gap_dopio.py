@@ -1,5 +1,5 @@
 import cv2
-from cvtools import scan, get_bigger_area
+from cvtools import scan, get_bigger_area, scan_nero
 import time
 from global_var import ALTEZZA, LARGHEZZA
 
@@ -72,6 +72,36 @@ def doppio_verde(robot):
             exit()
 
 def gap(robot):
-    frame = robot.get_frame()
-    bottom = get_centro_roi_bottom(frame)
-    cv2.circle(frame, (bottom,ALTEZZA), 10, (190, 170, 200), -1)
+    cv2.destroyAllWindows()
+    robot.servo.set_cam_angle(140)
+    while True:
+        frame = robot.get_frame()
+        
+        _, mask_bianco, _ = scan(frame)
+        amount_bianco, _ = cv2.connectedComponents(mask_bianco)
+        if amount_bianco >= 3:
+            robot.servo.cam_linea()
+            break # no gap
+
+        mask_nero = scan_nero(frame)
+        amount, labels = cv2.connectedComponents(mask_nero)
+        aree = sort_aree(amount, labels, 1) # prende le aree di nero e le ordina per la y
+        
+        M = cv2.moments(aree[-1])
+        if M["m00"] != 0:
+            x = int(M["m10"] / M["m00"])
+            cv2.circle(frame, (x,ALTEZZA), 10, (190, 170, 200), -1)
+        else:
+            x = 0
+        
+
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            robot.motors.motors(0, 0)
+            robot.cam_stream.stop()
+            robot.sensors_stream.stop()
+            cv2.destroyAllWindows()
+            robot.servo.deinit_pca()
+            exit()
+        

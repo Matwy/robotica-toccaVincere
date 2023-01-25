@@ -7,7 +7,11 @@ from ostacolo import ostacolo
 import time
 
 def rescue(robot):
-    ostacolo_count = 0    
+    
+    robot.servo.cam_linea()
+
+    ostacolo_count = 0
+
     while True:
         """
         LINEA
@@ -39,6 +43,7 @@ def rescue(robot):
             robot.motors.motors(0, 0)
             robot.cam_stream.stop()
             robot.sensors_stream.stop()
+            robot.servo.deinit_pca()
             cv2.destroyAllWindows()
             break
 

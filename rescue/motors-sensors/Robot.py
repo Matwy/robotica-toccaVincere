@@ -2,12 +2,14 @@ import time
 from PiVideoStreamUndistorted import PiVideoStream
 from Motors import Motors
 from multiTof import sensors_stream
+from servo import Servo
 class Robot():
     def __init__(self):
         self.cam_stream = PiVideoStream().start()
         self.sensors_stream = sensors_stream().start()
         time.sleep(0.5)
         self.motors = Motors()
+        self.servo = Servo()
     
     def get_tof_mesures(self):
         return self.sensors_stream.get_range()

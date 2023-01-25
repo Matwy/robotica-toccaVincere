@@ -49,6 +49,15 @@ def scan(img):
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde
+def scan_nero(img):
+    gray_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray_scale, (7,7), 5)
+    ret, mask_nero = cv2.threshold(blur,lower_white-50,255,cv2.THRESH_BINARY)
+
+    mask_nero=cv2.erode(mask_nero,KERNEL,iterations=6)
+    mask_nero=cv2.dilate(mask_nero,KERNEL,iterations=4)
+    cv2.imshow("debug", mask_nero)
+    return mask_nero
 
 def get_bigger_area(mask):
     amount, labels = cv2.connectedComponents(mask)

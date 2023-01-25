@@ -46,7 +46,7 @@ def linea(frame, robot):
     """
     #se c'è solo un'area bianca c'è un gap 
     if amount_bianco < 3:
-        gap(motors, silver_count)
+        gap(robot)
         return 0, 0
     
     #trovo l'inizio della linea 
