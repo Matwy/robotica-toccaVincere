@@ -3,10 +3,22 @@ from cvtools import scan, get_bigger_area
 import time
 from global_var import ALTEZZA, LARGHEZZA
 
+def get_x_bottom_line(frame):
+    mask_nero, _, mask_verde = scan(frame)
+    cut = mask_nero[-50:, :]
+    
+    cut = mask_nero[-50:, :]
+    M = cv2.moments(cut)
+    if M["m00"] != 0:
+        x = int(M["m10"] / M["m00"])
+    else:
+        x = 0
+    
+    return x
+
 def doppio_verde(robot):
     robot.motors.motors(0, 0)
     cv2.destroyAllWindows()
-    i = 0
 
     while True:
         frame = robot.get_frame()
@@ -58,3 +70,8 @@ def doppio_verde(robot):
             robot.sensors_stream.stop()
             cv2.destroyAllWindows()
             exit()
+
+def gap(robot):
+    frame = robot.get_frame()
+    bottom = get_centro_roi_bottom(frame)
+    cv2.circle(frame, (bottom,ALTEZZA), 10, (190, 170, 200), -1)

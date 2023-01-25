@@ -23,15 +23,15 @@ def rescue(robot):
         """
         OSTACOLO
         """
-        front_tof, _, _ = robot.get_tof_mesures()
-        if front_tof < 50:
+        _, _, front_tof = robot.get_tof_mesures()
+        if front_tof < 60:
             ostacolo_count += 1
             print(front_tof, "      count", ostacolo_count)
         else:
             ostacolo_count = 0
         
-        #if ostacolo_count > 10:
-        #    ostacolo(robot)
+        if ostacolo_count > 5:
+            ostacolo(robot)
 
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF

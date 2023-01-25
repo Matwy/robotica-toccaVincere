@@ -5,7 +5,7 @@ from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_ini
 #incroci
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
-from gap_dopio import doppio_verde
+from gap_dopio import doppio_verde, gap
 from global_var import ALTEZZA, LARGHEZZA
 
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
@@ -43,12 +43,12 @@ def linea(frame, robot):
     
     """
     GAP
-    
+    """
     #se c'è solo un'area bianca c'è un gap 
     if amount_bianco < 3:
         gap(motors, silver_count)
         return 0, 0
-    """
+    
     #trovo l'inizio della linea 
     puntoL, puntoR = calcola_inizio_linea(mask, amount_bianco, labels_bianco)
     punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
