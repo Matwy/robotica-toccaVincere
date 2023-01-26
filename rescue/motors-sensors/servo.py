@@ -5,15 +5,15 @@ from adafruit_motor import servo
 import time
 
 class Servo:
-    FREQUENCY_HZ = 60
+    FREQUENCY_HZ = 50
     
     def __init__(self):
         i2c_bus = busio.I2C(SCL, SDA)
         self.pca = PCA9685(i2c_bus)
         self.pca.frequency = self.FREQUENCY_HZ
-        self.cam = servo.Servo(self.pca.channels[4])
         self.braccio_sx = servo.Servo(self.pca.channels[1])
         self.braccio_dx = servo.Servo(self.pca.channels[2])
+        self.cam = servo.Servo(self.pca.channels[4])
     
     def deinit_pca(self):
         self.pca.reset()

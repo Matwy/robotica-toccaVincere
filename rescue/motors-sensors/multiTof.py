@@ -29,9 +29,10 @@ class sensors_stream:
             # turn on the VL53L0X to allow hardware check
             power_pin.value = True
             # instantiate the VL53L0X sensor on the I2C bus & insert it into the "vl53" list
-            time.sleep(0.5)
+            #time.sleep(0.5)
+            time.sleep(0.02)
             self.vl53.insert(i, VL53L0X(self.i2c))  # also performs VL53L0X hardware check
-            time.sleep(0.5)
+            time.sleep(0.02)
             # no need to change the address of the last VL53L0X sensor
             if i < len(self.xshut) - 1:
                 # default address is 0x29. Change that to something else
