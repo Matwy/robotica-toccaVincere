@@ -79,49 +79,96 @@ def is_gap(frame):
     
     return True
     
+def get_centro_linea(frame):
+    mask_nero = scan_nero(frame)
+    mask_bigger_nero = get_bigger_area(mask_nero)
+    _, cnts, _ = cv2.findContours(mask_bigger_nero.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if(len(cnts)) == 0 : return False
+    cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
+    contour_linea = cnts[0]
+
+    y_top = tuple(contour_linea[contour_linea[:, :, 1].argmin()][0])[1]
+    cut_top = mask_bigger_nero[y_top+5:y_top+10, :]
+    
+    M = cv2.moments(cut_top)
+    x_top = int(M["m10"] / M["m00"]) if M["m00"] != 0 else ALTEZZA//2
+    return x_top
+
+def trova_linea(robot):
+
+    print("BIANCHETTO")
+    timer_alza_cam = time.time()
+    avanti = True
+
+    while True:
+
+        frame = robot.get_frame()
+        centro_linea = get_centro_linea(frame)
+        if centro_linea != False:
+            robot.servo.cam_linea()
+            time.sleep(0.5)
+            break
+        if time.time() - timer_alza_cam  > 2:
+            avanti = not avanti
+            timer_alza_cam = time.time()
+            print("cambioo")
+
+        if time.time() - timer_alza_cam < 2 and avanti:            
+            robot.motors.motors(20,20)
+            robot.servo.cam_su()
+
+        if time.time() - timer_alza_cam < 2 and not avanti:
+            robot.motors.motors(-20, -20)
+            robot.servo.cam_linea()
+
+        cv2.imshow("gapping", frame)  
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            robot.motors.motors(0, 0)
+            robot.cam_stream.stop()
+            robot.sensors_stream.stop()
+            cv2.destroyAllWindows()
+            robot.servo.deinit_pca()
+            exit()    
 
 def gap(robot):
     cv2.destroyAllWindows()
     #robot.servo.set_cam_angle(140)
+    quit_gap_counter = 0
+    no_linea_counter = 0
+
     while True:
         frame = robot.get_frame()
-        
-        mask_nero, _, mask_verde = scan(frame)
-        
-        # prendo come roi la parte bassa della linea nera e calcolo l'errore
-        area_alta = mask_nero[:, 30:-30]
-        M = cv2.moments(area_alta)
-        if M["m00"] != 0:
-            x = int(M["m10"] / M["m00"])
-        else:
-            x = 0
 
         """ QUIT GAP """
-        if not is_gap(frame): 
-            robot.servo.cam_linea()
-            break 
-
-        mask_nero = scan_nero(frame)
-        #amount, labels = cv2.connectedComponents(mask_nero)
-        #area_alta = sort_aree(amount, labels, 1)[-1] # prende le aree di nero e le ordina per la y
-        #area_alta = area_alta[:, 30:-30]
-        cv2.imshow("area_alta", mask_nero)  
-        """ TROVA CENTRO LINEA ALTA """
-        M = cv2.moments(mask_nero)
-        if M["m00"] != 0:
-            cx = int(M["m10"] / M["m00"])
-            cv2.circle(frame, (cx,ALTEZZA), 10, (190, 170, 200), -1)
+        if not is_gap(frame):
+            quit_gap_counter += 1
+            if quit_gap_counter > 10:
+                robot.servo.cam_linea()
+                break
         else:
-            cx = 0
-        print(cx)
+            quit_gap_counter = 0
         
+        """ CONTROLLA SE LA LINEA C'E' """
+        centro_linea = get_centro_linea(frame)
+
+        if centro_linea == False : 
+            no_linea_counter += 1
+            centro_linea = ALTEZZA//2
+        else:
+            no_linea_counter = 0
+        if no_linea_counter > 30:
+            trova_linea(robot)
+            continue
+
+        print(centro_linea)
+        cv2.circle(frame, (centro_linea,ALTEZZA), 10, (190, 170, 200), -1)
         # uso una correzione proporzionale per centrarmi
         sp = 20
         kp = 4
-        errore = cx - (LARGHEZZA//2)
+        errore = centro_linea - (LARGHEZZA//2)
         robot.motors.motors(sp + (errore*kp), sp - (errore*kp))
 
-        cv2.circle(frame, (x,ALTEZZA), 10, (190, 170, 200), -1)
         cv2.imshow("gapping", frame)  
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):

@@ -6,7 +6,8 @@ import time
 
 class Servo:
     FREQUENCY_HZ = 50
-    
+    current_cam_angle = 0
+
     def __init__(self):
         i2c_bus = busio.I2C(SCL, SDA)
         self.pca = PCA9685(i2c_bus)
@@ -24,12 +25,21 @@ class Servo:
     """
     def set_cam_angle(self, angle):
         self.cam.angle = angle
+        self.current_cam_angle = angle
 
+    def cam_su(self):
+        try:
+            self.cam.angle = 150
+        except:
+            print("dio sporco negro")
+    
     def cam_linea(self):
         self.set_cam_angle(160)
+        self.current_cam_angle = 160
         
     def cam_EZ(self):
         self.set_cam_angle(120)
+        self.current_cam_angle = 120
     
     """
     PINZA
