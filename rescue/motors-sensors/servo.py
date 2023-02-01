@@ -14,6 +14,8 @@ class Servo:
         self.pca.frequency = self.FREQUENCY_HZ
         self.braccio_sx = servo.Servo(self.pca.channels[1])
         self.braccio_dx = servo.Servo(self.pca.channels[2])
+        self.becco_sx = servo.Servo(self.pca.channels[8])
+        self.becco_dx = servo.Servo(self.pca.channels[9])
         self.cam = servo.Servo(self.pca.channels[4])
     
     def deinit_pca(self):
@@ -56,3 +58,12 @@ class Servo:
 
     def pinza_giu(self):
         self.set_pinza_angle(0)
+    
+    """
+    BECCHI
+    """
+    def becco(self):
+        self.becco_sx.angle = 115
+        self.becco_dx.angle = 115
+
+    

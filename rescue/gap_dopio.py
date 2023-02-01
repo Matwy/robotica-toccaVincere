@@ -170,6 +170,7 @@ def gap(robot):
             quit_gap_counter += 1
             if quit_gap_counter > 10:
                 robot.servo.cam_linea()
+                cv2.destroyAllWindows()
                 break
         else:
             quit_gap_counter = 0

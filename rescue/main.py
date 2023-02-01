@@ -4,6 +4,8 @@ import cv2
 from Robot import Robot
 from linea import linea
 from ostacolo import ostacolo
+from cuboblu import detect_blu, centra_raccogli_cubo
+
 import time
 
 def rescue(robot):
@@ -12,6 +14,8 @@ def rescue(robot):
     robot.servo.pinza_su()
 
     ostacolo_count = 0
+    cubo_count = 0
+
 
     while True:
         """
@@ -23,7 +27,7 @@ def rescue(robot):
         speed = 55
         kp, ki, kd = 2, 1, 2.2
         P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
-        print("P = ", P, "   D =", D, "   time =", time.time())
+        print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
         robot.motors.motors(speed + (P+D), speed - (P+D))
         """
         OSTACOLO
@@ -31,12 +35,21 @@ def rescue(robot):
         _, _, front_tof = robot.get_tof_mesures()
         if front_tof < 60:
             ostacolo_count += 1
-            print(front_tof, "      count", ostacolo_count)
         else:
             ostacolo_count = 0
         
         if ostacolo_count > 5:
             ostacolo(robot)
+        """
+        CUBOBBLU
+        """
+        if detect_blu(frame):
+            cubo_count += 1
+        else:
+            cubo_count = 0
+            
+        if cubo_count > 5:
+            centra_raccogli_cubo(robot)
 
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
@@ -50,4 +63,5 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    rescue(robot)
+    robot.servo.becco()
+    # rescue(robot)
