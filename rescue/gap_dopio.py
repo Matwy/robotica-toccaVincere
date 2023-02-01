@@ -83,43 +83,69 @@ def get_centro_linea(frame):
     mask_nero = scan_nero(frame)
     mask_bigger_nero = get_bigger_area(mask_nero)
     _, cnts, _ = cv2.findContours(mask_bigger_nero.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if(len(cnts)) == 0 : return False
+    if(len(cnts)) == 0 : return False, False
     cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
     contour_linea = cnts[0]
 
     y_top = tuple(contour_linea[contour_linea[:, :, 1].argmin()][0])[1]
-    cut_top = mask_bigger_nero[y_top+5:y_top+10, :]
+    y_bot = tuple(contour_linea[contour_linea[:, :, 1].argmax()][0])[1]
     
-    M = cv2.moments(cut_top)
-    x_top = int(M["m10"] / M["m00"]) if M["m00"] != 0 else ALTEZZA//2
-    return x_top
+    cut_top = mask_bigger_nero[y_top+5:y_top+10, :]
+    cut_bot = mask_bigger_nero[y_bot-10:y_bot-5, :]
+    
+    M1, M2 = cv2.moments(cut_top), cv2.moments(cut_bot),
+    x_top = int(M1["m10"] / M1["m00"]) if M1["m00"] != 0 else ALTEZZA//2
+    x_bot = int(M2["m10"] / M2["m00"]) if M2["m00"] != 0 else ALTEZZA//2
+
+    return x_top, x_top-x_bot
 
 def trova_linea(robot):
 
-    print("BIANCHETTO")
+    print("[GAP] BIANCHETTO")
     timer_alza_cam = time.time()
     avanti = True
 
     while True:
 
         frame = robot.get_frame()
-        centro_linea = get_centro_linea(frame)
-        if centro_linea != False:
-            robot.servo.cam_linea()
-            time.sleep(0.5)
+        centro_linea, angle = get_centro_linea(frame)
+        
+        if centro_linea != False and avanti:
+            robot.servo.cam_linea() # linea trovata
             break
-        if time.time() - timer_alza_cam  > 2:
-            avanti = not avanti
-            timer_alza_cam = time.time()
-            print("cambioo")
 
-        if time.time() - timer_alza_cam < 2 and avanti:            
-            robot.motors.motors(20,20)
+        if angle != False and not avanti:
+            #parcheggio ad S
+            sp, kp, kd = -30, 1, 1.5
+            errore_linea = centro_linea - (LARGHEZZA//2)
+            P, D= int(errore_linea*kp), -int(angle*kd)
+            print("[GAP] linea", errore_linea, "  angolo", angle)
+            robot.motors.motors(sp - (P+D), sp + (P+D))
+
+            if abs(errore_linea) > 40:
+                robot.motors.motors(50, 50)
+                time.sleep(0.5)
+                robot.motors.motors(sp - (P+D), sp + (P+D))
+                time.sleep(0.3)
+
+                break
+
+
+        if avanti:            
+            robot.motors.motors(40,40)
             robot.servo.cam_su()
 
-        if time.time() - timer_alza_cam < 2 and not avanti:
-            robot.motors.motors(-20, -20)
+            if time.time() - timer_alza_cam  > 2:
+                avanti = not avanti
+                timer_alza_cam = time.time()
+
+        if not avanti:
+            if centro_linea == False : robot.motors.motors(-40, -40)
             robot.servo.cam_linea()
+
+            if time.time() - timer_alza_cam  > 4:
+                avanti = not avanti
+                timer_alza_cam = time.time()
 
         cv2.imshow("gapping", frame)  
         key = cv2.waitKey(1) & 0xFF
@@ -136,7 +162,6 @@ def gap(robot):
     #robot.servo.set_cam_angle(140)
     quit_gap_counter = 0
     no_linea_counter = 0
-
     while True:
         frame = robot.get_frame()
 
@@ -150,7 +175,7 @@ def gap(robot):
             quit_gap_counter = 0
         
         """ CONTROLLA SE LA LINEA C'E' """
-        centro_linea = get_centro_linea(frame)
+        centro_linea, angle = get_centro_linea(frame)
 
         if centro_linea == False : 
             no_linea_counter += 1
@@ -161,13 +186,13 @@ def gap(robot):
             trova_linea(robot)
             continue
 
-        print(centro_linea)
         cv2.circle(frame, (centro_linea,ALTEZZA), 10, (190, 170, 200), -1)
         # uso una correzione proporzionale per centrarmi
-        sp = 20
-        kp = 4
-        errore = centro_linea - (LARGHEZZA//2)
-        robot.motors.motors(sp + (errore*kp), sp - (errore*kp))
+        sp, kp, kd = 40, 1.5, 2
+        print("[GAP] angolo", angle)
+        errore_linea = centro_linea - (LARGHEZZA//2)
+        P, D= int(errore_linea*kp), int(angle*kd)
+        robot.motors.motors(sp + (P+D), sp - (P+D))
 
         cv2.imshow("gapping", frame)  
         key = cv2.waitKey(1) & 0xFF

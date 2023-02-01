@@ -9,6 +9,7 @@ import time
 def rescue(robot):
     
     robot.servo.cam_linea()
+    robot.servo.pinza_su()
 
     ostacolo_count = 0
 
