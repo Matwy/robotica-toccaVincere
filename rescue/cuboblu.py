@@ -26,11 +26,12 @@ def detect_blu(frame):
 def raggiungi_cubo(robot):
     # allontanati dal cubetto e tira giù la pinza
     # cam_check_pinza()
-    # becco_aperto()
-    robot.motors.motors(-30, -30)
+    robot.servo.becco_aperto()
+    robot.motors.motors(-40, -40)
     time.sleep(1.3)
-    # braccio_giu()
+    robot.servo.pinza_giu()
     robot.motors.motors(0, 0)
+    robot.servo.cam_cubo()
     #  avvicinati al cubetto fino
     #  a quando lo vedi dentro alla pinza
     t_inizio = time.time()
@@ -41,22 +42,30 @@ def raggiungi_cubo(robot):
 
         if cubo == None: continue
         print(cubo)        
-        if cubo[1] > ALTEZZA-53:
+        if cubo[1] > ALTEZZA-66:
             t_fine = time.time()
             robot.motors.motors(0, 0)
-            # becco_chiuso()
+            robot.servo.becco_chiuso()
             time.sleep(0.3)
-            # braccio_su_drop_cubo()
+            robot.servo.pinza_su()
 
-            time.sleep(0.3)
-            # becco_rilascia_morti()
-            time.sleep(0.3)
-            # cubo_avanti()
-            # braccio_default()
             robot.motors.motors(-15, -15)
             time.sleep(t_fine - t_inizio)
-            # cam_giu()
+            robot.servo.cam_linea()
             break
+        
+        
+        cv2.circle(frame, cubo, 20, (230,230,50), 2)
+        cv2.imshow("raggiungicubo", frame)
+        
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            robot.motors.motors(0, 0)
+            robot.cam_stream.stop()
+            robot.sensors_stream.stop()
+            cv2.destroyAllWindows()
+            robot.servo.deinit_pca()
+            exit()
 
 def centra_raccogli_cubo(robot):
     cv2.destroyAllWindows()

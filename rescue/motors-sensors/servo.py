@@ -37,11 +37,13 @@ class Servo:
     
     def cam_linea(self):
         self.set_cam_angle(160)
-        self.current_cam_angle = 160
-        
+    
+    def cam_cubo(self):
+        self.set_cam_angle(130)
+    
+     
     def cam_EZ(self):
         self.set_cam_angle(120)
-        self.current_cam_angle = 120
     
     """
     PINZA
@@ -62,8 +64,11 @@ class Servo:
     """
     BECCHI
     """
-    def becco(self):
+    def becco_aperto(self):
         self.becco_sx.angle = 115
-        self.becco_dx.angle = 115
-
+        self.becco_dx.angle = 0
+        
+    def becco_chiuso(self):
+            self.becco_sx.angle = 60
+            self.becco_dx.angle = 60
     

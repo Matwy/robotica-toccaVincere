@@ -12,7 +12,7 @@ def rescue(robot):
     
     robot.servo.cam_linea()
     robot.servo.pinza_su()
-
+    robot.servo.becco_aperto()
     ostacolo_count = 0
     cubo_count = 0
 
@@ -63,5 +63,5 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    robot.servo.becco()
+    robot.servo.becco_chiuso()
     # rescue(robot)

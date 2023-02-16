@@ -1,5 +1,5 @@
 import cv2
-from PiVideoStreamUndistorted import PiVideoStream
+from PiVideoStream import PiVideoStream
 import time
 
 vs = PiVideoStream().start()
