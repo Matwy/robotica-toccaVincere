@@ -5,6 +5,7 @@ from Robot import Robot
 from linea import linea
 from ostacolo import ostacolo
 from cuboblu import detect_blu, centra_raccogli_cubo
+from salita import salita
 
 import time
 
@@ -13,8 +14,10 @@ def rescue(robot):
     robot.servo.cam_linea()
     robot.servo.pinza_su()
     robot.servo.becco_aperto()
+    
     ostacolo_count = 0
     cubo_count = 0
+    salita_count = 0
 
 
     while True:
@@ -50,7 +53,19 @@ def rescue(robot):
             
         if cubo_count > 5:
             centra_raccogli_cubo(robot)
-
+        
+        """
+        SALITA
+        """
+        if robot.is_salita():
+            salita_count += 1
+        else:
+            salita_count = 0
+            
+        if salita_count > 10:
+            salita(robot)
+        
+        
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -63,5 +78,5 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    robot.servo.becco_chiuso()
-    # rescue(robot)
+    # robot.servo.becco_chiuso()
+    rescue(robot)
