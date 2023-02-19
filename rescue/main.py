@@ -81,15 +81,6 @@ def rescue(robot):
 
 import time
 if __name__ == '__main__':
-    robot = Robot()
-    robot.servo.pinza_giu()
-    time.sleep(1)
-    robot.servo.becco_chiuso()
-    time.sleep(0.2)
-    robot.servo.pinza_su()
-    time.sleep(1)
-    robot.servo.becco_molla_morti()
-    
-    
-    # ez(robot)
+    robot = Robot()    
+    ez(robot)
     # rescue(robot)

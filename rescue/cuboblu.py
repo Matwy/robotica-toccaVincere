@@ -11,10 +11,8 @@ kernel = np.ones((9,9), np.uint8)
 def detect_blu(frame):
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     blu = cv2.inRange(hsv, lower_blue, upper_blue)
-    cv2.imshow("bluraw", blu)
     blu = cv2.erode(blu,kernel,iterations=1)
     blu = cv2.dilate(blu,kernel,iterations=2)
-    cv2.imshow("blumorph", blu)
     key = cv2.waitKey(1) & 0xFF
     M = cv2.moments(blu)
     if M["m00"] != 0:
