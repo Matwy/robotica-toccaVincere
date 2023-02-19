@@ -11,9 +11,11 @@ kernel = np.ones((9,9), np.uint8)
 def detect_blu(frame):
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     blu = cv2.inRange(hsv, lower_blue, upper_blue)
-    blu = cv2.erode(blu,kernel,iterations=2)
+    cv2.imshow("bluraw", blu)
+    blu = cv2.erode(blu,kernel,iterations=1)
     blu = cv2.dilate(blu,kernel,iterations=2)
-
+    cv2.imshow("blumorph", blu)
+    key = cv2.waitKey(1) & 0xFF
     M = cv2.moments(blu)
     if M["m00"] != 0:
         cX = int(M["m10"] / M["m00"])
@@ -38,22 +40,30 @@ def raggiungi_cubo(robot):
     while True:
         frame = robot.get_frame()
         cubo = detect_blu(frame)
-        robot.motors.motors(15, 15)
+        robot.motors.motors(30, 30)
+        
+        if time.time() - t_inizio > 5:
+            robot.servo.pinza_su()
+            robot.motors.motors(-30, -30)
+            time.sleep(time.time() - t_inizio)
+            robot.servo.cam_linea()
+            break 
 
         if cubo == None: continue
-        print(cubo)        
-        if cubo[1] > ALTEZZA-66:
+        print("[CUBOBLU] cubo_y", cubo[1])
+        if cubo[1] > 65:
             t_fine = time.time()
             robot.motors.motors(0, 0)
             robot.servo.becco_chiuso()
             time.sleep(0.3)
             robot.servo.pinza_su()
+            time.sleep(1)
+            robot.servo.becco_molla_vivi()
 
-            robot.motors.motors(-15, -15)
+            robot.motors.motors(-30, -30)
             time.sleep(t_fine - t_inizio)
             robot.servo.cam_linea()
-            break
-        
+            break        
         
         cv2.circle(frame, cubo, 20, (230,230,50), 2)
         cv2.imshow("raggiungicubo", frame)

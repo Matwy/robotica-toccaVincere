@@ -17,6 +17,8 @@ class Servo:
         self.becco_sx = servo.Servo(self.pca.channels[9])
         self.becco_dx = servo.Servo(self.pca.channels[8])
         self.cam = servo.Servo(self.pca.channels[4])
+        self.morti = servo.Servo(self.pca.channels[3])
+        self.vivi = servo.Servo(self.pca.channels[5])
     
     def deinit_pca(self):
         self.pca.reset()
@@ -56,7 +58,7 @@ class Servo:
         self.braccio_sx.angle = 180-angle
 
     def pinza_su(self):
-        self.set_pinza_angle(180)
+        self.set_pinza_angle(153)
 
     def pinza_giu(self):
         self.set_pinza_angle(0)
@@ -72,6 +74,34 @@ class Servo:
         self.becco_dx.angle = 0
         
     def becco_chiuso(self):
-            self.becco_sx.angle = 60
-            self.becco_dx.angle = 60
+        self.becco_sx.angle = 60
+        self.becco_dx.angle = 60
     
+    def becco_molla_morti(self):
+        self.becco_dx.angle = 0
+        for i in range(3):
+            self.becco_sx.angle = 60
+            time.sleep(0.2)
+            self.becco_sx.angle = 90
+            time.sleep(0.2)
+    
+    def becco_molla_vivi(self):
+        self.becco_sx.angle = 115
+        for i in range(3):
+            self.becco_dx.angle = 60
+            time.sleep(0.2)
+            self.becco_dx.angle = 30
+            time.sleep(0.2)        
+    
+    """
+    CASSONI
+    """
+    def vivi_default(self):
+        self.vivi.angle = 0
+    def vivi_svuota(self):
+        self.vivi.angle = 110
+        
+    def morti_default(self):
+        self.morti.angle = 180
+    def morti_svuota(self):
+        self.morti.angle = 70

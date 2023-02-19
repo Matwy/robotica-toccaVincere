@@ -6,6 +6,7 @@ from linea import linea
 from ostacolo import ostacolo
 from cuboblu import detect_blu, centra_raccogli_cubo
 from salita import salita
+from ez import ez
 
 import time
 
@@ -14,6 +15,8 @@ def rescue(robot):
     robot.servo.cam_linea()
     robot.servo.pinza_su()
     robot.servo.becco_aperto()
+    robot.servo.morti_default()
+    robot.servo.vivi_default()
     
     ostacolo_count = 0
     cubo_count = 0
@@ -76,7 +79,17 @@ def rescue(robot):
             cv2.destroyAllWindows()
             break
 
+import time
 if __name__ == '__main__':
     robot = Robot()
-    # robot.servo.becco_chiuso()
-    rescue(robot)
+    robot.servo.pinza_giu()
+    time.sleep(1)
+    robot.servo.becco_chiuso()
+    time.sleep(0.2)
+    robot.servo.pinza_su()
+    time.sleep(1)
+    robot.servo.becco_molla_morti()
+    
+    
+    # ez(robot)
+    # rescue(robot)

@@ -22,7 +22,7 @@ def run() -> None:
     enable_edgetpu: True/False whether the model is a EdgeTPU model.
     """
 
-    model = 'giugia_calpestami.tflite'
+    model = 'giugia_pestami_le_palle.tflite'
 
     # Variables to calculate FPS
     counter, fps = 0, 0
