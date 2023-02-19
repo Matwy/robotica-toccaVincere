@@ -30,13 +30,13 @@ def get_selected_ball(frame):
     
     ball = []
     for d in detection_result.detections:
-        x, y, w, h = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height
-        ball.append((x,y,w,h))
+        x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
+        ball.append((x,y,w,h, index))
         cv2.rectangle(output, (x,y), (x+w, y+h), (255,0,0), 1)
     
     if len(ball) > 0:
         ball.sort(key=lambda b : b[2]*b[3], reverse=True) # ordina le palle in base alla più grande (quindi la più vicina)
-        x, y, w, h = ball[0]
+        x, y, w, h, _ = ball[0]
         cv2.rectangle(output, (x,y), (x+w, y+h), (255,0,255), 4)
         return ball[0]
 
@@ -84,13 +84,18 @@ def ez(robot):
                 robot.servo.pinza_su()
                 pinza_su = True
             
-            if ball[1] > 50:
+            if ball[1] > 55 and not pinza_su:
                 robot.servo.becco_chiuso()
                 time.sleep(0.3)
                 robot.motors.motors(-20, -20)
                 robot.servo.pinza_su()
                 time.sleep(1)
-                robot.servo.becco_molla_morti()
+                if ball[4] == 0:
+                    robot.servo.becco_molla_morti()
+                else:
+                    robot.servo.becco_molla_vivi()
+                robot.servo.becco_aperto()
+                pinza_su = True
                 
         else:
             robot.motors.motors(0, 0)
