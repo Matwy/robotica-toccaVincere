@@ -22,7 +22,7 @@ class EZ:
 
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_PALLE, use_coral=False, num_threads=4)
-        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.3)
+        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.25)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_palle = vision.ObjectDetector.create_from_options(options)
         
@@ -105,14 +105,15 @@ class EZ:
             return ball[0]
     
     def raccogli_palla(self, ball):
-        # palla troppo vicina vai indietro con la pinza su
         ball_x = ball[0] + (ball[2]//2)
         ball_y = ball[1] + (ball[3]//2)
+        # palla troppo vicina vai indietro con la pinza su
         if ball_y > self.Y_BECCO_SOTTO:
             self.robot.motors.motors(-40, -40)
             if not self.pinza_su:
                 self.robot.servo.pinza_su()
                 self.pinza_su = True
+                return
                 
         # PID tenendo in considerazione la distanza della palla
         speed = 40 if ball_y < self.Y_ABBASSA_BRACCIO else 20

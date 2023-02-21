@@ -3,7 +3,7 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 170
+SENSITIVITY = 180
 
 lower_white = 255-SENSITIVITY
 lower_green = np.array([20,50,25]) 
@@ -43,9 +43,9 @@ def scan(img):
     
     bianco[verde == 255] = 255 #tolgo l'eventuale verde dal nero aggiungendolo al bianco
 
+    cv2.imshow("debug bianco", bianco)
     bianco=cv2.dilate(bianco,KERNEL,iterations=1)
-    bianco=cv2.erode(bianco,KERNEL,iterations=4)
-    #cv2.imshow("debug bianco", bianco)
+    bianco=cv2.erode(bianco,KERNEL,iterations=5)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde
