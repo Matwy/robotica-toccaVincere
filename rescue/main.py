@@ -82,5 +82,10 @@ def rescue(robot):
 import time
 if __name__ == '__main__':
     robot = Robot()    
-    EZ(robot).loop_palle()
+    robot.servo.pinza_su()
+    robot.servo.vivi_default()
+    robot.servo.morti_default()
+    ez = EZ(robot)
+    ez.loop_palle()
+    ez.loop_triangoli()
     # rescue(robot)
