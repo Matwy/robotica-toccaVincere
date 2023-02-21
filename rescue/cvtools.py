@@ -386,7 +386,7 @@ def get_bigger_component(mask):
     bigger_area = (None, 0)
 
     for i in range(1, amount):
-        area = BLANK.copy()
+        area = np.zeros((128, 160), dtype='uint8')
         area[labels == i] = 255
         area_nonzero = np.count_nonzero(area)
         
@@ -410,18 +410,18 @@ def scan_bordi(img):
     
     #bordi = cv2.Canny(laplacian,50,200)
     bordi = cv2.adaptiveThreshold(255-laplacian,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,101,50)
-    kernel = np.ones((7,7),np.uint8)
-    bordi = cv2.erode(bordi,kernel,iterations = 4)
+    kernel = np.ones((5,5),np.uint8)
+    bordi = cv2.erode(bordi,kernel,iterations = 2)
     
     bordi = cv2.bitwise_not(bordi)
-    bordo = get_bigger_component(bordi)
     
+    bordo = get_bigger_component(bordi)
     return bordo
 
-def sort_aree(amount, labels, coordinata):
+def sort_aree(amount, labels, coordinata, _blank='linea'):
     aree = []
     for i in range(1, amount):
-        area = BLANK.copy()
+        area = BLANK.copy() if _blank == 'linea' else np.zeros((128, 160), dtype='uint8') # per avere l'immagine vuota con risoluzione giusta
         area[labels == i] = 255 # immagine con solo area bianca colorata
         
         M = cv2.moments(area)

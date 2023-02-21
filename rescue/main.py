@@ -6,7 +6,7 @@ from linea import linea
 from ostacolo import ostacolo
 from cuboblu import detect_blu, centra_raccogli_cubo
 from salita import salita
-from ez import ez
+from ez import EZ
 
 import time
 
@@ -82,5 +82,5 @@ def rescue(robot):
 import time
 if __name__ == '__main__':
     robot = Robot()    
-    ez(robot)
+    EZ(robot).loop_palle()
     # rescue(robot)
