@@ -17,6 +17,7 @@ class EZ:
     MODELLO_TRIANGOLI = 'giugia_leccami_il_triangolo.tflite'
     
     def __init__(self, robot):
+        robot.motors.motors(30, 30) # entra un po' durante il setup
         cv2.destroyAllWindows()
 
         # Initialize the object detection model
@@ -30,7 +31,6 @@ class EZ:
         self.detector_triangoli = vision.ObjectDetector.create_from_options(options)
         
         self.robot = robot
-        self.robot.motors.motors(0, 0)
         # change camera settings
         self.robot.servo.cam_EZ()
         self.robot.camstream_EZ()
@@ -42,6 +42,8 @@ class EZ:
         self.palline_morte = 0
         self.triangolo_rosso = 0
         self.triangolo_verde = 0
+        
+        robot.motors.motors(0, 0)
     
     def giro_bordi(self, frame, mode):
         
@@ -195,7 +197,7 @@ class EZ:
                 self.robot.sensors_stream.stop()
                 self.robot.servo.deinit_pca()
                 cv2.destroyAllWindows()
-                break
+                exit()
     
     def get_selected_triangolo(self, frame):
         # detect triangolo with tensor
@@ -244,6 +246,7 @@ class EZ:
             self.robot.motors.motors(-40, -40)
             time.sleep(2.7)
             self.robot.motors.motors(-25, -25)
+            self.robot.servo.pinza_svuota_cassoni()
             time.sleep(1)
             
             if triangolo[-1] == 0:
@@ -280,4 +283,4 @@ class EZ:
                 self.robot.sensors_stream.stop()
                 self.robot.servo.deinit_pca()
                 cv2.destroyAllWindows()
-                break
+                exit()

@@ -68,6 +68,13 @@ def rescue(robot):
         if salita_count > 10:
             salita(robot)
         
+        """
+        EZ
+        """
+        if robot.check_ez():
+            ez = EZ(robot)
+            ez.loop_palle()
+            ez.loop_triangoli()
         
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
@@ -82,10 +89,10 @@ def rescue(robot):
 import time
 if __name__ == '__main__':
     robot = Robot()    
-    robot.servo.pinza_su()
-    robot.servo.vivi_default()
-    robot.servo.morti_default()
-    ez = EZ(robot)
-    ez.loop_palle()
-    ez.loop_triangoli()
-    # rescue(robot)
+    # robot.servo.pinza_su()
+    # robot.servo.vivi_default()
+    # robot.servo.morti_default()
+    # ez = EZ(robot)
+    # ez.loop_palle()
+    # ez.loop_triangoli()
+    rescue(robot)

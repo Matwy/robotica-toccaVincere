@@ -58,14 +58,17 @@ class Servo:
         self.braccio_sx.angle = 180-angle
 
     def pinza_su(self):
-        self.set_pinza_angle(153)
+        self.set_pinza_angle(158)
 
     def pinza_giu(self):
         self.set_pinza_angle(0)
 
     def pinza_salita(self):
         self.set_pinza_angle(90)
-            
+
+    def pinza_svuota_cassoni(self):
+        self.set_pinza_angle(150)
+        
     """
     BOCCHI
     """
@@ -79,10 +82,10 @@ class Servo:
     
     def becco_molla_morti(self):
         self.becco_dx.angle = 0
-        for i in range(3):
-            self.becco_sx.angle = 60
+        for i in range(5):
+            self.becco_sx.angle = 20
             time.sleep(0.2)
-            self.becco_sx.angle = 90
+            self.becco_sx.angle = 70
             time.sleep(0.2)
     
     def becco_molla_vivi(self):

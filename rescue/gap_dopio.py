@@ -2,7 +2,7 @@ import cv2
 from cvtools import scan, get_bigger_area, scan_nero, sort_aree
 import time
 from global_var import ALTEZZA, LARGHEZZA
-
+from ez import EZ
 def get_x_bottom_line(frame):
     mask_nero, _, mask_verde = scan(frame)
     cut = mask_nero[-50:, :]
@@ -106,6 +106,10 @@ def trova_linea(robot):
     avanti = True
 
     while True:
+        if robot.check_ez():
+            ez = EZ(robot)
+            ez.loop_palle()
+            ez.loop_triangoli()
 
         frame = robot.get_frame()
         centro_linea, angle = get_centro_linea(frame)
@@ -159,10 +163,14 @@ def trova_linea(robot):
 
 def gap(robot):
     cv2.destroyAllWindows()
-    #robot.servo.set_cam_angle(140)
     quit_gap_counter = 0
     no_linea_counter = 0
     while True:
+        if robot.check_ez():
+            ez = EZ(robot)
+            ez.loop_palle()
+            ez.loop_triangoli()
+
         frame = robot.get_frame()
 
         """ QUIT GAP """
@@ -204,4 +212,3 @@ def gap(robot):
             cv2.destroyAllWindows()
             robot.servo.deinit_pca()
             exit()
-        
