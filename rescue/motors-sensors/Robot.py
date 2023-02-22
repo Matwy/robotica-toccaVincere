@@ -34,14 +34,23 @@ class Robot():
         
     def check_ez(self):
         if self.cavo_sinistra.is_pressed or self.cavo_destra.is_pressed:
-            while True:
+            self.motors.motors(0,0)
+            print("conduzio")
+            time.sleep(3)
+            if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
+                self.motors.motors(0,0)
+                return True
+            
+            sx_speed, dx_speed = (0,30) if self.cavo_sinistra.is_pressed else (30,0)    
+            
+            self.motors.motors(-sx_speed,-dx_speed)
+            t_fine = time.time()+3
+            while time.time() < t_fine:
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
-                    self.motors.motors(0,0)
                     return True
-                if self.cavo_sinistra.is_pressed:
-                    self.motors.motors(0,20)
-                if self.cavo_destra.is_pressed:
-                    self.motors.motors(20,0)
-                
-                if not self.cavo_destra.is_pressed and not self.cavo_sinistra.is_pressed:
-                    break
+            
+            self.motors.motors(sx_speed,dx_speed)
+            t_fine = time.time()+6
+            while time.time() < t_fine:
+                if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
+                    return True

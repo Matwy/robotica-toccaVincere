@@ -58,7 +58,7 @@ class Servo:
         self.braccio_sx.angle = 180-angle
 
     def pinza_su(self):
-        self.set_pinza_angle(158)
+        self.set_pinza_angle(153)
 
     def pinza_giu(self):
         self.set_pinza_angle(0)

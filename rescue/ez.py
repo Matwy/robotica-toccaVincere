@@ -31,11 +31,16 @@ class EZ:
         self.detector_triangoli = vision.ObjectDetector.create_from_options(options)
         
         self.robot = robot
-        # change camera settings
         self.robot.servo.cam_EZ()
+        self.robot.servo.pinza_su()
+        self.robot.servo.vivi_default()
+        self.robot.servo.morti_default()
+        
+        # change camera settings
         self.robot.camstream_EZ()
         time.sleep(0.5)
         self.LARGHEZZA, self.ALTEZZA = robot.cam_stream.camera.resolution
+        
         self.pinza_su = True
         self.output = None
         self.palline_vive = 0
@@ -51,7 +56,7 @@ class EZ:
         aree_muri_pavimento = cv2.bitwise_not(bordi)
         amount, labels = cv2.connectedComponents(aree_muri_pavimento)
         
-        if amount == 1: self.robot.motors.motors(50, 30) # destra
+        if amount == 1: self.robot.motors.motors(80, 30) # destra
 
         aree_muri_pavimento = sort_aree(amount, labels, 1, _blank='ez')
         if len(aree_muri_pavimento) > 0:
@@ -59,7 +64,7 @@ class EZ:
         else:
             return
         if mode == 'alto':
-            roi_pt1, roi_pt2 = (0, 35), (self.LARGHEZZA, 40)
+            roi_pt1, roi_pt2 = (0, 43), (self.LARGHEZZA, 45)
         else:
             roi_pt1, roi_pt2 = (0, 60), (self.LARGHEZZA, 65)
             
@@ -69,7 +74,7 @@ class EZ:
         
         if np.count_nonzero(roi == 0) < 100:
             #destra
-            self.robot.motors.motors(80, 20)
+            self.robot.motors.motors(80, 30)
             return
 
         roi_mask_bordi = cv2.bitwise_not(roi)
@@ -80,7 +85,7 @@ class EZ:
         errore_bordo = self.LARGHEZZA-cX
         if errore_bordo < self.LARGHEZZA // 3.5:
             # sinistra piano
-            self.robot.motors.motors(20, 80)
+            self.robot.motors.motors(20, 4*errore_bordo)
         else:
             # sinistra pott
             self.robot.motors.motors(-30, 50)
@@ -104,7 +109,7 @@ class EZ:
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,255), 4)
             return ball[0]
     
-    def raccogli_palla(self, ball):
+    def raccogli_palla(self, ball, tipo_palla):
         ball_x = ball[0] + (ball[2]//2)
         ball_y = ball[1] + (ball[3]//2)
         # palla troppo vicina vai indietro con la pinza su
@@ -116,9 +121,9 @@ class EZ:
                 return
                 
         # PID tenendo in considerazione la distanza della palla
-        speed = 40 if ball_y < self.Y_ABBASSA_BRACCIO else 20
-        errore_x = ball_x - self.ALTEZZA//2
-        self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
+        speed = 50 if ball_y < self.Y_ABBASSA_BRACCIO else 20
+        errore_x = ball_x - self.ALTEZZA//1.5
+        self.robot.motors.motors(speed + (errore_x//2), speed - (errore_x//2))
         
         if ball_y > self.Y_ABBASSA_BRACCIO and self.pinza_su:
             # abbassa pinza se la palla è vicina e la pinza è su
@@ -132,7 +137,7 @@ class EZ:
                 self.robot.motors.motors(80, 80)
                 time.sleep(1)
                 self.robot.motors.motors(60, -60)
-                time.sleep(0.7)
+                time.sleep(1)
                 self.robot.motors.motors(-50, -50)
                 time.sleep(0.5)
                 return
@@ -144,13 +149,13 @@ class EZ:
         if ball_y > self.Y_BECCO_SOPRA and ball_y < self.Y_BECCO_SOTTO and abs(errore_x) < 10 and not self.pinza_su:
             # raccogli palla se è dentro i becchi e al centro dello schermo e la pinza è giu
             self.robot.motors.motors(20, 20)
-            time.sleep(0.3)
+            time.sleep(0.5)
             self.robot.servo.becco_chiuso()
             time.sleep(0.3)
             self.robot.motors.motors(-20, -20)
             self.robot.servo.pinza_su()
             time.sleep(1)
-            if ball[4] == 0: # distinzione morte vive
+            if tipo_palla <= 0: # distinzione morte vive
                 self.robot.servo.becco_molla_morti()
                 self.palline_morte += 1
             else:
@@ -158,9 +163,11 @@ class EZ:
                 self.palline_vive += 1
             self.robot.servo.becco_aperto()
             self.pinza_su = True
+            tipo_palla = 0
     
     def loop_palle(self):
         palla_persa_count = 0
+        tipo_palla = 0
         t_inizio_ricerca = time.time()
         while True:
             frame = self.robot.get_frame()
@@ -172,11 +179,13 @@ class EZ:
             if ball:
                 # PALLE 
                 palla_persa_count = 0
-                print("[EZ] loop_palle() palla: ", ball)
-                self.raccogli_palla(ball)
+                tipo_palla += 1 if ball[-1] == 1 else -1
+                print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla)
+                self.raccogli_palla(ball, tipo_palla)
             elif self.pinza_su:
                 # BORDI
-                mode_giro_bordi = 'alto' if time.time() - t_inizio_ricerca < 20 else 'basso' 
+                tipo_palla = 0
+                mode_giro_bordi = 'alto' #if time.time() - t_inizio_ricerca < 20 else 'basso' 
                 self.giro_bordi(frame, mode_giro_bordi)
             else:
                 self.robot.motors.motors(-30, -30)
