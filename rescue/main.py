@@ -1,3 +1,4 @@
+import signal
 import sys
 sys.path.insert(1, './motors-sensors')
 import cv2
@@ -86,10 +87,19 @@ def rescue(robot):
             cv2.destroyAllWindows()
             break
 
-import time
+def signal_handler(sig, frame, robot):
+    robot.motors.motors(0, 0)
+    robot.cam_stream.stop()
+    robot.sensors_stream.stop()
+    robot.servo.deinit_pca()
+    cv2.destroyAllWindows()
+    print("USCITA SAFE")
+    exit()
+
 if __name__ == '__main__':
     robot = Robot()
-    ez = EZ(robot)
-    ez.loop_palle()
-    ez.loop_triangoli()
-    # rescue(robot)
+    signal.signal(signal.SIGTERM, lambda sig, frame: signal_handler(sig, frame, robot))
+    # ez = EZ(robot)
+    # ez.loop_palle()
+    # ez.loop_triangoli()
+    rescue(robot)
