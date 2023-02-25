@@ -3,6 +3,7 @@ import numpy as np
 import time
 from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_inizio_linea, get_n_aree_biance
 #incroci
+from Incrocio import Incrocio
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
 from gap_dopio import doppio_verde, gap
@@ -36,10 +37,10 @@ def linea(frame, robot):
     #trovo le aree bianche
     amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
     #scarta le aree bianche che sono troppo piccole se non c'è verde (decidi se farlo prima o dopo il controllo del gap)
-    if np.count_nonzero(mask_verde) < 1000:
-        n_aree_bianche = get_n_aree_biance(amount_bianco, labels_bianco)
-    else:
-        n_aree_bianche = amount_bianco-1
+    # if np.count_nonzero(mask_verde) < 1000:
+        # n_aree_bianche = get_n_aree_biance(amount_bianco, labels_bianco)
+    # else:
+    n_aree_bianche = amount_bianco-1
     
     """
     GAP
@@ -64,7 +65,7 @@ def linea(frame, robot):
     """
     if n_aree_bianche > 2:
         #trovo centor incrocio e lo mostro
-        centro_incrocio = get_centro_incrocio(amount_bianco, labels_bianco)
+        incrocio = Incrocio(robot)
         cv2.circle(output, centro_incrocio, 30, (0,0,255), 2)
         if centro_incrocio == None:
             return punto_basso[0] - (LARGHEZZA//2), 0

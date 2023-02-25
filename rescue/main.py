@@ -89,8 +89,8 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    ez = EZ(robot)
-    ez.loop_palle()
-    ez.loop_triangoli()
+    # ez = EZ(robot)
+    # ez.loop_palle()
+    # ez.loop_triangoli()
     print("[MAIN] rescue()")
-    # rescue(robot)
+    rescue(robot)
