@@ -191,6 +191,20 @@ def get_punto_alto(mask, x_last, y_last):
     #ERRORE
     return (LARGHEZZA//2, 0)
 
+# def getAngle(vertice, p1, p2):
+#     a = np.array([p1[0], p1[1]])
+#     b = np.array([vertice[0], vertice[1]])
+#     c = np.array([p2[0], p2[1]])
+
+#     ba = a - b
+#     bc = c - b
+
+#     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+#     angle = np.arccos(cosine_angle)
+#     angle = np.degrees(angle)
+    
+#     return int(angle)
+
 def getAngle(vertice, p1, p2):
     a = np.array([p1[0], p1[1]])
     b = np.array([vertice[0], vertice[1]])
@@ -199,12 +213,16 @@ def getAngle(vertice, p1, p2):
     ba = a - b
     bc = c - b
 
-    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.arccos(cosine_angle)
-    angle = np.degrees(angle)
-    
-    return int(angle)
+    norm_ba = np.linalg.norm(ba)
+    norm_bc = np.linalg.norm(bc)
 
+    if norm_ba != 0 and norm_bc != 0:
+        cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
+        angle = np.arccos(cosine_angle)
+        angle = np.degrees(angle)
+        return int(angle)
+    else:
+        return 0
 def get_centro_incrocio(amount, labels):
     
     kernel=np.ones((60, 60),np.uint8)
@@ -319,10 +337,7 @@ def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
     for verde in verdi_sotto_incrocio:
         d = distanza_punti(verde, centro_incrocio)
         if d < 50:
-            print("d", d)
             verdi_vicini_incrocio.append(verde)
-    print("verdi vicini a incrocio", verdi_vicini_incrocio)
-    print("incrocio", centro_incrocio)
     #se ci sono due verdi validi allora controllo che siano
     #  uno a destra e l'altro a sinistra dell'incrocio
     if len(verdi_vicini_incrocio) == 2:
