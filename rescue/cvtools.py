@@ -6,8 +6,10 @@ from global_var import ALTEZZA, LARGHEZZA
 SENSITIVITY = 160
 
 lower_white = 255-SENSITIVITY
-lower_green = np.array([5,0,0]) 
-upper_green = np.array([135,100,255])
+# lower_green = np.array([5,0,0]) LAb
+# upper_green = np.array([135,100,255])
+lower_green = np.array([20,50,25]) 
+upper_green = np.array([90,255,230])
 
 lower_green_EZ = np.array([30,120,40]) 
 upper_green_EZ = np.array([130,255,205])
@@ -257,6 +259,8 @@ def get_collisioni_with_angles(mask_nero, punto_basso, centro_incrocio):
     angoli = []
     #calcola gli angoli del frame
     for centro in collisioni:
+        distanza_punto_basso = distanza_punti(punto_basso, centro)
+        if abs(distanza_punto_basso) < 50: continue # se la distanza tra punto basso e la collisione è così poca  punto_basso==centro
         angolo = getAngle(centro_incrocio, punto_basso, centro)
         angoli.append((angolo, centro))
     
