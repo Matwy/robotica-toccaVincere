@@ -33,8 +33,8 @@ def rescue(robot):
         speed = 35
         kp, ki, kd = 1.8, 1, 2.2
         P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
-        print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
         robot.motors.motors(speed + (P+D), speed - (P+D))
+        print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
         """
         OSTACOLO
         """

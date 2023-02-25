@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
 from global_var import ALTEZZA, LARGHEZZA
-from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi
+from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi, get_n_aree_biance
+from gap_dopio import doppio_verde
+import time
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')
 
-OFFSET_TARGET_INCROCIO = 10
+OFFSET_TARGET_INCROCIO = 20
 
 class Incrocio:
     @staticmethod
@@ -50,6 +52,7 @@ class Incrocio:
         punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
         # COLLISIONE MINORE
         collisioni_bordo = get_collisioni_with_angles(mask_nero, punto_basso, self.centro)
+        if len(collisioni_bordo) == 0: return (LARGHEZZA//2, 0)
         collisione_meno_ampia = collisioni_bordo[0][1]
         cv2.circle(self.output, collisione_meno_ampia, 10, (30,200, 50), 2)
         # VERDE
@@ -67,7 +70,8 @@ class Incrocio:
             end_point = collisioni_bordo[0][1]
             
         elif len(verdi) == 2:
-            print("dopio")
+            doppio_verde(self.robot)
+            end_point = (LARGHEZZA//2, 0)
             
         cv2.circle(self.output, end_point, 10, (50,50, 255), 2)
         return end_point
@@ -76,7 +80,7 @@ class Incrocio:
         errore_x = self.centro[0] - (LARGHEZZA//2)
         errore_y = (ALTEZZA//2) - self.centro[1]
         Px = int(errore_x*2)
-        Py = int(errore_y*2)
+        Py = int(errore_y*1)
         if errore_y > 0:
             self.robot.motors.motors(abs(Py) + Px, abs(Py) - Px)                
         else:
@@ -97,23 +101,24 @@ class Incrocio:
             self.output[mask_verde == 255] = (0,255,0)
             
             amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
+            n_aree_bianche_senza_loli = get_n_aree_biance(amount_bianco, labels_bianco)
             # CENTRO INCROCIO 
             self.centro = Incrocio.get_incrocio(amount_bianco, labels_bianco)
             if incrocio_perso > 5:
                 return
-            if self.centro is None:
+            if self.centro is None or n_aree_bianche_senza_loli <= 2:
                 incrocio_perso += 1
-                self.robot.motors.motors(0,0)
                 continue
             
-            if not self.is_centered:
+            if not self.is_centered and self.centro[1] < ALTEZZA - 30:
                 self.centra_incrocio()
             else:
-                self.robot.motors.motors(0,0)
                 end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, mask_verde)
-                errore_x = end_point[0] - (LARGHEZZA//2)
-                sp, P = 20, int(errore_x*2)
-                self.robot.motors.motors(sp + P, sp - P)                
+                errore_end_point = end_point[0] - (LARGHEZZA//2)
+                errore_centro = self.centro[0] - (LARGHEZZA//2)
+                        
+                P, D= int(errore_centro*0.5), int(errore_end_point*1)
+                self.robot.motors.motors(15 + (P+D), 15 - (P+D))
 
             cv2.circle(self.output, self.centro, 15, (0,0,255), 2)
             cv2.imshow('incriocio', self.output)

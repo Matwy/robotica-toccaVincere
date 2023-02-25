@@ -3,7 +3,7 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 160
+SENSITIVITY = 180
 
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
@@ -48,7 +48,7 @@ def scan(img):
 
     cv2.imshow("debug bianco", bianco)
     bianco=cv2.dilate(bianco,KERNEL,iterations=1)
-    bianco=cv2.erode(bianco,KERNEL,iterations=5)
+    bianco=cv2.erode(bianco,KERNEL,iterations=4)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde
@@ -150,7 +150,11 @@ def get_n_aree_biance(amount, labels):
         area_bianca = BLANK.copy()
         area_bianca[labels == i] = 255
         n_punti_bianchi = np.count_nonzero(area_bianca)
-        if n_punti_bianchi > 1000:
+        if n_punti_bianchi < 1000:
+            x, y, w, h = cv2.boundingRect(area_bianca)
+            if y < ALTEZZA // 2:
+                n_aree += 1
+        else:
             n_aree += 1
     return n_aree
 
@@ -216,13 +220,13 @@ def getAngle(vertice, p1, p2):
     norm_ba = np.linalg.norm(ba)
     norm_bc = np.linalg.norm(bc)
 
-    if norm_ba != 0 and norm_bc != 0:
-        cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
-        angle = np.arccos(cosine_angle)
-        angle = np.degrees(angle)
+    cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
+    angle = np.arccos(cosine_angle)
+    angle = np.degrees(angle)
+    try:
         return int(angle)
-    else:
-        return 0
+    except:
+        return 180
 def get_centro_incrocio(amount, labels):
     
     kernel=np.ones((60, 60),np.uint8)

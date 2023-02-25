@@ -37,10 +37,10 @@ def linea(frame, robot):
     #trovo le aree bianche
     amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
     #scarta le aree bianche che sono troppo piccole se non c'è verde (decidi se farlo prima o dopo il controllo del gap)
-    # if np.count_nonzero(mask_verde) < 1000:
-        # n_aree_bianche = get_n_aree_biance(amount_bianco, labels_bianco)
-    # else:
-    n_aree_bianche = amount_bianco-1
+    if np.count_nonzero(mask_verde) < 1000:
+        n_aree_bianche = get_n_aree_biance(amount_bianco, labels_bianco)
+    else:
+        n_aree_bianche = amount_bianco-1
     
     """
     GAP
