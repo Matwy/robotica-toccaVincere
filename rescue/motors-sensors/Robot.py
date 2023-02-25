@@ -25,7 +25,7 @@ class Robot():
         return (self.cam_stream.LARGHEZZA, self.cam_stream.ALTEZZA)
     
     def is_salita(self):
-        return get_inclinazione() > 10
+        return get_inclinazione() > 6
     
     def camstream_EZ(self):
         self.cam_stream.stop()

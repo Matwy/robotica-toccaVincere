@@ -28,8 +28,9 @@ def raggiungi_cubo(robot):
     # cam_check_pinza()
     robot.servo.becco_aperto()
     robot.motors.motors(-40, -40)
-    time.sleep(1.3)
+    time.sleep(1)
     robot.servo.pinza_giu()
+    time.sleep(0.5)
     robot.motors.motors(0, 0)
     robot.servo.cam_cubo()
     #  avvicinati al cubetto fino
@@ -54,7 +55,7 @@ def raggiungi_cubo(robot):
             robot.motors.motors(0, 0)
             robot.servo.becco_chiuso()
             time.sleep(0.3)
-            robot.servo.pinza_su()
+            robot.servo.pinza_su_max()
             time.sleep(1)
             robot.servo.becco_molla_vivi()
 

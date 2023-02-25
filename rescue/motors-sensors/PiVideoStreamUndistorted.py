@@ -12,7 +12,7 @@ class PiVideoStream:
         self.camera.resolution = resolution
         self.camera.framerate = framerate
         #self.camera.rotation = 180
-        self.camera.brightness = 52 #50
+        self.camera.brightness = 50 #50
         self.rawCapture = PiRGBArray(self.camera, size=resolution)
         self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
         # initialize the frame and the variable used to indicate

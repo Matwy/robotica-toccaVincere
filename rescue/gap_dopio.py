@@ -21,7 +21,7 @@ def doppio_verde(robot):
     cv2.destroyAllWindows()
 
     while True:
-        frame = robot.get_frame()
+        frame = robot.get_frame().copy()
         mask_nero, _, mask_verde = scan(frame)
         
         # prendo come roi la parte bassa della linea nera e calcolo l'errore
@@ -43,22 +43,22 @@ def doppio_verde(robot):
         
         # se sono molto vicino ai due verdi giro
         if cY > ALTEZZA-20:
-            robot.motors.motors(-40, -40)
+            robot.motors.motors(40, 40)
             time.sleep(1)
             #gira di 180°
-            robot.motors.motors(73, -70)
-            time.sleep(2.7)
+            robot.motors.motors(-70, 70)
+            time.sleep(2.5)
 
-            robot.motors.motors(40, 40)
+            robot.motors.motors(-40, -40)
             time.sleep(0.5)
             cv2.destroyAllWindows()
             break
 
         # uso una correzione proporzionale per centrarmi
-        sp = -20
+        sp = 20
         kp = 4
         errore = x - (LARGHEZZA//2)
-        robot.motors.motors(sp - (errore*kp), sp + (errore*kp))
+        robot.motors.motors(sp + int(errore*kp), sp - int(errore*kp))
         
         cv2.rectangle(frame, (0, ALTEZZA-50), (LARGHEZZA, ALTEZZA), (0,0,255), 2)
         cv2.imshow("dopio", frame)  
@@ -108,7 +108,7 @@ def trova_linea(robot):
     while True:
         if robot.check_ez():
             ez = EZ(robot)
-            ez.loop_palle()
+            # ez.loop_palle()
             ez.loop_triangoli()
 
         frame = robot.get_frame()
@@ -168,10 +168,10 @@ def gap(robot):
     while True:
         if robot.check_ez():
             ez = EZ(robot)
-            ez.loop_palle()
+            # ez.loop_palle()
             ez.loop_triangoli()
 
-        frame = robot.get_frame()
+        frame = robot.get_frame().copy()
 
         """ QUIT GAP """
         if not is_gap(frame):

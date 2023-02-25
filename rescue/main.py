@@ -1,4 +1,3 @@
-import signal
 import sys
 sys.path.insert(1, './motors-sensors')
 import cv2
@@ -28,11 +27,11 @@ def rescue(robot):
         """
         LINEA
         """
-        frame = robot.get_frame()
+        frame = robot.get_frame().copy()
         errore_linea, errore_angolo = linea(frame, robot)
         
-        speed = 55
-        kp, ki, kd = 2, 1, 2.2
+        speed = 35
+        kp, ki, kd = 1.8, 1, 2.2
         P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
         print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
         robot.motors.motors(speed + (P+D), speed - (P+D))
@@ -40,7 +39,7 @@ def rescue(robot):
         OSTACOLO
         """
         _, _, front_tof = robot.get_tof_mesures()
-        if front_tof < 60:
+        if front_tof < 100:
             ostacolo_count += 1
         else:
             ostacolo_count = 0
@@ -66,7 +65,7 @@ def rescue(robot):
         else:
             salita_count = 0
             
-        if salita_count > 10:
+        if salita_count > 5:
             salita(robot)
         
         """
@@ -74,7 +73,7 @@ def rescue(robot):
         """
         if robot.check_ez():
             ez = EZ(robot)
-            ez.loop_palle()
+            # ez.loop_palle()
             ez.loop_triangoli()
         
         cv2.imshow("frame", frame)
@@ -87,19 +86,11 @@ def rescue(robot):
             cv2.destroyAllWindows()
             break
 
-def signal_handler(sig, frame, robot):
-    robot.motors.motors(0, 0)
-    robot.cam_stream.stop()
-    robot.sensors_stream.stop()
-    robot.servo.deinit_pca()
-    cv2.destroyAllWindows()
-    print("USCITA SAFE")
-    exit()
 
 if __name__ == '__main__':
     robot = Robot()
-    signal.signal(signal.SIGTERM, lambda sig, frame: signal_handler(sig, frame, robot))
-    # ez = EZ(robot)
-    # ez.loop_palle()
-    # ez.loop_triangoli()
-    rescue(robot)
+    ez = EZ(robot)
+    ez.loop_palle()
+    ez.loop_triangoli()
+    print("[MAIN] rescue()")
+    # rescue(robot)

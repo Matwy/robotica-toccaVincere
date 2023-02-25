@@ -123,8 +123,7 @@ class EZ:
         # PID tenendo in considerazione la distanza della palla
         speed = 50 if ball_y < self.Y_ABBASSA_BRACCIO else 20
         errore_x = ball_x - self.ALTEZZA//1.5
-        self.robot.motors.motors(speed + (errore_x//2), speed - (errore_x//2))
-        
+        self.robot.motors.motors(speed + int(errore_x//2), speed - int(errore_x//2))
         if ball_y > self.Y_ABBASSA_BRACCIO and self.pinza_su:
             # abbassa pinza se la palla è vicina e la pinza è su
             
@@ -137,7 +136,7 @@ class EZ:
                 self.robot.motors.motors(80, 80)
                 time.sleep(1)
                 self.robot.motors.motors(60, -60)
-                time.sleep(1)
+                time.sleep(1.3)
                 self.robot.motors.motors(-50, -50)
                 time.sleep(0.5)
                 return
@@ -180,7 +179,7 @@ class EZ:
                 # PALLE 
                 palla_persa_count = 0
                 tipo_palla += 1 if ball[-1] == 1 else -1
-                print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla)
+                print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla, " tof ", self.robot.get_tof_mesures()[1])
                 self.raccogli_palla(ball, tipo_palla)
             elif self.pinza_su:
                 # BORDI
@@ -192,7 +191,7 @@ class EZ:
                 palla_persa_count += 1
                 print(palla_persa_count)
 
-            if palla_persa_count > 20:
+            if palla_persa_count > 10:
                 self.robot.servo.pinza_su()
                 self.pinza_su = True
                 

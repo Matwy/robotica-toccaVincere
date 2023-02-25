@@ -93,7 +93,7 @@ def linea(frame, robot):
         """DOPPIOVERDE"""
         if len(verdi) == 2:
             doppio_verde_counter += 1
-            if doppio_verde_counter > 6: # se vede due verdi per 6 volte di fila
+            if doppio_verde_counter > 3: # se vede due verdi per 6 volte di fila
                 doppio_verde(robot)
         else:
             doppio_verde_counter = 0

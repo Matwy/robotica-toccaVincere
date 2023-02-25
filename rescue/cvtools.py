@@ -3,14 +3,14 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 180
+SENSITIVITY = 160
 
 lower_white = 255-SENSITIVITY
-lower_green = np.array([20,50,25]) 
-upper_green = np.array([90,255,230])
+lower_green = np.array([5,0,0]) 
+upper_green = np.array([135,100,255])
 
 lower_green_EZ = np.array([30,120,40]) 
-upper_green_EZ = np.array([95,255,205])
+upper_green_EZ = np.array([130,255,205])
 
 lower_red = np.array([0,70,90])
 upper_red = np.array([20,255,240])
@@ -34,6 +34,7 @@ def scan(img):
     
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
+    cv2.imshow("debug verde", verde)
     verde=cv2.erode(verde,KERNEL,iterations=3)
     verde=cv2.dilate(verde,KERNEL,iterations=2)
 
@@ -52,7 +53,7 @@ def scan(img):
 def scan_nero(img):
     gray_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray_scale, (7,7), 5)
-    ret, bianco = cv2.threshold(blur,lower_white-50,255,cv2.THRESH_BINARY)
+    ret, bianco = cv2.threshold(blur,lower_white-20,255,cv2.THRESH_BINARY)
 
     bianco=cv2.erode(bianco,KERNEL,iterations=6)
     bianco=cv2.dilate(bianco,KERNEL,iterations=4)

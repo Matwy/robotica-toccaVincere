@@ -27,19 +27,19 @@ def stop_script():
     if pid:
         os.kill(pid, signal.SIGTERM)
 
+print ("[LEVA] Waiting")
 while True:
-    
     if leva.is_pressed and run == 0:
-        print ("----Started----")
         run = 1
         run_script()
+        print ("[LEVA] ---- Started ---- ")
         while leva.is_pressed:
             time.sleep(0.1)
             
     if not leva.is_pressed and run == 1:
         time.sleep(0.2)
         stop_script()
-        print ("  Stopped " )
+        print ("[LEVA] ---- Stopped ---- " )
         run = 0
 
         while not leva.is_pressed:

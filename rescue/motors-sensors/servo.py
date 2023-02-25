@@ -59,12 +59,15 @@ class Servo:
 
     def pinza_su(self):
         self.set_pinza_angle(153)
-
+    
+    def pinza_su_max(self):
+        self.set_pinza_angle(158)
+        
     def pinza_giu(self):
         self.set_pinza_angle(0)
 
     def pinza_salita(self):
-        self.set_pinza_angle(90)
+        self.set_pinza_angle(30)
 
     def pinza_svuota_cassoni(self):
         self.set_pinza_angle(150)
