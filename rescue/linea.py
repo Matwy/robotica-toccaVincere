@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import time
-from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_inizio_linea, get_n_aree_biance
+from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_inizio_linea, get_n_aree_biance, get_nearest_area_from_2points
 #incroci
 from Incrocio import Incrocio
 from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
@@ -12,13 +12,10 @@ from global_var import ALTEZZA, LARGHEZZA
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')
 
-x_last = LARGHEZZA//2
-y_last = 0
-
 doppio_verde_counter = 0
 
 def linea(frame, robot):
-    global x_last, y_last, doppio_verde_counter
+    global doppio_verde_counter
     output = BLANK_COLORI.copy()
     
     #pulisco l'immagine
@@ -26,13 +23,15 @@ def linea(frame, robot):
     mask_nero, mask_bianco, mask_verde = scan(frame)
     
     #decido che area nera prendere
-    mask = get_bigger_area(mask_nero)
+    mask_nearest_area = get_nearest_area_from_2points(mask_nero, robot.last_punto_alto, robot.last_punto_basso)
+    mask_bianco = cv2.bitwise_not(mask_nearest_area)
     #DA RICONTROLLARE SE CI SONO PROVLEMI LA MASK POTREBBE ESSERE VUOTA
     
     #aggiorno l'output
-    output[mask == 255] = 0
+    output[mask_nearest_area == 255] = 0
     output[mask_verde == 255] = (0,255,0)
-    
+    cv2.circle(output, robot.last_punto_alto, 3, (0, 90, 19), 5)
+    cv2.circle(output, robot.last_punto_basso, 3, (0, 90, 19), 5)
     
     #trovo le aree bianche
     amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
@@ -49,12 +48,12 @@ def linea(frame, robot):
     if amount_bianco < 3:
         gap(robot)
         return 0, 0
-    
+    print(amount_bianco)
     #trovo l'inizio della linea 
-    puntoL, puntoR = calcola_inizio_linea(mask, amount_bianco, labels_bianco)
+    puntoL, puntoR = calcola_inizio_linea(mask_nearest_area, amount_bianco, labels_bianco)
     punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
+    robot.last_punto_basso = punto_basso
     #mostro i punti
-    cv2.circle(output, punto_basso, 5, (150, 90, 190), 5)
     cv2.circle(output, puntoL, 10, (255, 0, 0), -1)
     cv2.circle(output, puntoR, 10, (0, 0, 255), -1)
     
@@ -101,8 +100,8 @@ def linea(frame, robot):
     #trova i punti alti della linea e decidi quale seguire tenendo in considerazione quello precedente
 
     #trovo le collisioni con la parte più alta dello schermo
-    punto_alto = get_punto_alto(mask, x_last, y_last)
-    x_last, y_last = punto_alto
+    punto_alto = get_punto_alto(mask_nearest_area, robot.last_punto_alto)
+    robot.last_punto_alto = punto_alto
     cv2.circle(output, punto_alto, 20, (230,230,50), 2)
 
     #trova errore angolo

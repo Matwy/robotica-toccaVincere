@@ -80,6 +80,32 @@ def get_bigger_area(mask):
     
     return bigger_area[0]
 
+def get_nearest_area_from_2points(mask, point1, point2):
+    # Trova i contorni dell'immagine
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Calcola la distanza media dei due punti dai contorni
+    if len(contours) == 0: return np.zeros_like(mask)
+    distances = []
+    for contour in contours:
+        dist1 = cv2.pointPolygonTest(contour, point1, True)
+        dist2 = cv2.pointPolygonTest(contour, point2, True)
+        avg_dist = (abs(dist1) + abs(dist2)) / 2  # calcola la distanza media
+        distances.append(avg_dist)
+    
+    # Trova il contorno più vicino ai due punti
+    nearest_contour_idx = np.argmin(distances)
+    nearest_contour = contours[nearest_contour_idx]
+    
+    # se il contorno con la distanza media minore ha una distanza media maggiore di 5 allora restituisci l'area pi grande che xe meio
+    if distances[nearest_contour_idx] > 5:
+        return get_bigger_area(mask)
+    
+    # Crea una maschera dell'area racchiusa dal contorno
+    mask_nearest = np.zeros_like(mask)
+    cv2.drawContours(mask_nearest, [nearest_contour], 0, 255, -1)
+    return mask_nearest
+
+
 def get_area_with_last_point(mask, x_last, y_last):
     amount, labels = cv2.connectedComponents(mask)
     selected_area = None
@@ -177,14 +203,14 @@ def confronta_last(amount, labels, collisione, x_last, y_last):
     
     return punto_alto[0]
 
-def get_punto_alto(mask, x_last, y_last):
+def get_punto_alto(mask, last_punto_alto):
     collisione = np.logical_and(mask, MASK_BORDI)#and tra i bordi e la linea
     collisione = np.uint8(collisione)*255 #per riconvertire in immagine
     
     amount, labels = cv2.connectedComponents(collisione)
     if amount > 2:
         #caso in cui le intersezioni sono due o più quindi viene scelta la più alta
-        return confronta_last(amount, labels, collisione, x_last, y_last)
+        return confronta_last(amount, labels, collisione, last_punto_alto[0], last_punto_alto[1])
 
     if amount == 2:
         #c'è solo un'intersezione quindi trovane il centro

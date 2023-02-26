@@ -15,7 +15,9 @@ class Robot():
         self.motors = Motors()
         self.cavo_sinistra = Button(13)
         self.cavo_destra = Button(26)
-    
+        self.last_punto_alto = (136//2, 0)
+        self.last_punto_basso = (136//2, 137)
+            
     def get_tof_mesures(self):
         return self.sensors_stream.get_range()
     def get_frame(self):

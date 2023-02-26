@@ -50,6 +50,7 @@ class Incrocio:
         # PUNTO BASSO
         puntoL, puntoR = calcola_inizio_linea(mask_nero, amount_bianco, labels_bianco)
         punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
+        self.robot.last_punto_basso = punto_basso
         # COLLISIONE MINORE
         collisioni_bordo = get_collisioni_with_angles(mask_nero, punto_basso, self.centro)
         if len(collisioni_bordo) == 0: return (LARGHEZZA//2, 0)
@@ -74,6 +75,7 @@ class Incrocio:
             end_point = (LARGHEZZA//2, 0)
             
         cv2.circle(self.output, end_point, 10, (50,50, 255), 2)
+        self.robot.last_punto_alto = end_point
         return end_point
     def centra_incrocio(self):
         # centra l'incrocio in modo proporzionale
@@ -110,7 +112,7 @@ class Incrocio:
                 incrocio_perso += 1
                 continue
             
-            if not self.is_centered and self.centro[1] < ALTEZZA - 30:
+            if not self.is_centered and self.centro[1] < ALTEZZA - 50:
                 self.centra_incrocio()
             else:
                 end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, mask_verde)

@@ -178,7 +178,8 @@ class EZ:
             if ball:
                 # PALLE 
                 palla_persa_count = 0
-                tipo_palla += 1 if ball[-1] == 1 else -1
+                if ball[1] > 30:
+                    tipo_palla += 1 if ball[-1] == 1 else -1
                 print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla, " tof ", self.robot.get_tof_mesures()[1])
                 self.raccogli_palla(ball, tipo_palla)
             elif self.pinza_su:
@@ -230,12 +231,13 @@ class EZ:
         speed = 50
         errore_x = triangolo[0] + (triangolo[2]//2) - (self.ALTEZZA//2)
         self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
-        if triangolo[2]*triangolo[3] > 11000:
+        # controllo che la y+h del triangolo sia bassa quindi vicina al robot
+        if triangolo[1]+triangolo[3] > 110:
             
-            if self.robot.get_tof_mesures()[1] < 200:
+            if self.robot.get_tof_mesures()[1] < 250:
                 # robot troppo vicino al muro di destra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
-                time.sleep(0.5)
+                time.sleep(1)
                 self.robot.motors.motors(-60, 60)
                 time.sleep(0.7)
                 self.robot.motors.motors(80, 80)
@@ -274,7 +276,7 @@ class EZ:
             self.output = frame.copy()
             triangolo = self.get_selected_triangolo(frame)
             if triangolo:
-                print("[EZ] loop_triangoli() triangolo: ", triangolo)
+                print("[EZ] loop_triangoli() triangolo: ", triangolo, "  tof ", self.robot.get_tof_mesures()[1])
                 self.raggiungi_triangolo(triangolo)
             else:
                 # BORDI

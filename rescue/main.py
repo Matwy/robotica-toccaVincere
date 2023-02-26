@@ -86,11 +86,11 @@ def rescue(robot):
             cv2.destroyAllWindows()
             break
 
-
+import time
 if __name__ == '__main__':
     robot = Robot()
-    # ez = EZ(robot)
+    ez = EZ(robot)
     # ez.loop_palle()
-    # ez.loop_triangoli()
+    ez.loop_triangoli()
     print("[MAIN] rescue()")
-    rescue(robot)
+    # rescue(robot)

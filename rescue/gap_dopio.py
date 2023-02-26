@@ -1,5 +1,5 @@
 import cv2
-from cvtools import scan, get_bigger_area, scan_nero, sort_aree
+from cvtools import scan, get_bigger_area, scan_nero, sort_aree, get_nearest_area_from_2points
 import time
 from global_var import ALTEZZA, LARGHEZZA
 from ez import EZ
@@ -71,17 +71,19 @@ def doppio_verde(robot):
             cv2.destroyAllWindows()
             exit()
 
-def is_gap(frame):
-    _, mask_bianco, _ = scan(frame)
+def is_gap(robot, frame):
+    mask_nero, _, _ = scan(frame)
+    mask_nearest_area = get_nearest_area_from_2points(mask_nero, robot.last_punto_alto, robot.last_punto_basso)
+    mask_bianco = cv2.bitwise_not(mask_nearest_area)
     amount_bianco, _ = cv2.connectedComponents(mask_bianco)
     if amount_bianco >= 3:
         return False
     
     return True
     
-def get_centro_linea(frame):
+def get_centro_linea(robot, frame):
     mask_nero = scan_nero(frame)
-    mask_bigger_nero = get_bigger_area(mask_nero)
+    mask_bigger_nero = get_nearest_area_from_2points(mask_nero, robot.last_punto_alto, robot.last_punto_basso)
     _, cnts, _ = cv2.findContours(mask_bigger_nero.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if(len(cnts)) == 0 : return False, False
     cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
@@ -96,7 +98,11 @@ def get_centro_linea(frame):
     M1, M2 = cv2.moments(cut_top), cv2.moments(cut_bot),
     x_top = int(M1["m10"] / M1["m00"]) if M1["m00"] != 0 else ALTEZZA//2
     x_bot = int(M2["m10"] / M2["m00"]) if M2["m00"] != 0 else ALTEZZA//2
+    robot.last_punto_alto = (x_top,y_top)
+    robot.last_punto_basso = (x_bot,y_bot)
 
+    cv2.circle(frame, (x_bot,y_bot), 10, (190, 170, 200), -1)
+    cv2.circle(frame, (x_top,y_top), 10, (190, 170, 200), -1)
     return x_top, x_top-x_bot
 
 def trova_linea(robot):
@@ -112,7 +118,7 @@ def trova_linea(robot):
             ez.loop_triangoli()
 
         frame = robot.get_frame()
-        centro_linea, angle = get_centro_linea(frame)
+        centro_linea, angle = get_centro_linea(robot, frame)
         
         if centro_linea != False and avanti:
             robot.servo.cam_linea() # linea trovata
@@ -174,7 +180,7 @@ def gap(robot):
         frame = robot.get_frame().copy()
 
         """ QUIT GAP """
-        if not is_gap(frame):
+        if not is_gap(robot, frame):
             quit_gap_counter += 1
             if quit_gap_counter > 10:
                 robot.servo.cam_linea()
@@ -184,7 +190,7 @@ def gap(robot):
             quit_gap_counter = 0
         
         """ CONTROLLA SE LA LINEA C'E' """
-        centro_linea, angle = get_centro_linea(frame)
+        centro_linea, angle = get_centro_linea(robot, frame)
 
         if centro_linea == False : 
             no_linea_counter += 1
@@ -195,7 +201,7 @@ def gap(robot):
             trova_linea(robot)
             continue
 
-        cv2.circle(frame, (centro_linea,ALTEZZA), 10, (190, 170, 200), -1)
+        # cv2.circle(frame, (centro_linea,ALTEZZA), 10, (190, 170, 200), -1)
         # uso una correzione proporzionale per centrarmi
         sp, kp, kd = 40, 1.5, 2
         print("[GAP] angolo", angle)
