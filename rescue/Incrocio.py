@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from global_var import ALTEZZA, LARGHEZZA
-from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi, get_n_aree_biance
+from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi, get_n_aree_biance, get_nearest_countourn_point
 from gap_dopio import doppio_verde
 import time
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
@@ -28,7 +28,6 @@ class Incrocio:
 
         #il valore più alto sarà dove si sono intersecate più aree quindi l'incrocio
         #max_val = np.max(mask_somma_aree) 
-        cv2.imshow("incroci", mask_somma_aree)
         mask_incrocio = BLANK.copy()
         mask_incrocio[mask_somma_aree > 103] = 255
         
@@ -42,9 +41,10 @@ class Incrocio:
         return None
 
     def __init__(self, robot):
-        cv2.destroyAllWindows()
         self.robot = robot
+        self.centro = None
         self.is_centered = False
+        self.end_point = None
     
     def calcolo_fine_incrocio(self, mask_nero, amount_bianco, labels_bianco, mask_verde):
         # PUNTO BASSO
@@ -75,7 +75,6 @@ class Incrocio:
             end_point = (LARGHEZZA//2, 0)
             
         cv2.circle(self.output, end_point, 10, (50,50, 255), 2)
-        self.robot.last_punto_alto = end_point
         return end_point
     def centra_incrocio(self):
         # centra l'incrocio in modo proporzionale
@@ -105,26 +104,49 @@ class Incrocio:
             amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
             n_aree_bianche_senza_loli = get_n_aree_biance(amount_bianco, labels_bianco)
             # CENTRO INCROCIO 
-            self.centro = Incrocio.get_incrocio(amount_bianco, labels_bianco)
-            if incrocio_perso > 5:
-                return
-            if self.centro is None or n_aree_bianche_senza_loli <= 2:
-                incrocio_perso += 1
-                continue
+            _centro = Incrocio.get_incrocio(amount_bianco, labels_bianco)
+            if self.centro is None: self.centro = _centro
+            # controlli per uscire
+            if _centro is None: return
             
-            if not self.is_centered and self.centro[1] < ALTEZZA - 50:
+            if self.centro is None or n_aree_bianche_senza_loli <= 2 or np.linalg.norm(np.array(self.centro) - np.array(_centro)) > 50:
+                print('[INCROCIO] USCITA')
+                return
+            
+            self.centro = _centro
+            
+            if not self.is_centered and self.centro[1] < ALTEZZA - 30:
+                #    FASE 1    #
+                # Centra incrocio se non è centrato e l'incrocio è alto
+                print('[INCROCIO] CENTRA INCROCIO')
                 self.centra_incrocio()
-            else:
-                end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, mask_verde)
-                errore_end_point = end_point[0] - (LARGHEZZA//2)
+                
+            elif self.end_point is not None:
+                #    FASE 3    #
+                # se ho già trovato l'end point seguilo
+                self.end_point = get_nearest_countourn_point(mask_nero, self.end_point)
+                print('[INCROCIO] RAGGIUNGI ENDPOINT ', self.end_point)
+                if self.end_point is None: return
+                cv2.circle(self.output, self.end_point, 10, (50,50, 255), 2)
+                self.robot.last_punto_basso = self.centro
+                self.robot.last_punto_alto = self.end_point
+                
+                errore_end_point = self.end_point[0] - (LARGHEZZA//2)
                 errore_centro = self.centro[0] - (LARGHEZZA//2)
                         
-                P, D= int(errore_centro*0.5), int(errore_end_point*1)
+                P, D= int(errore_centro*0.4), int(errore_end_point*0.7)
                 self.robot.motors.motors(15 + (P+D), 15 - (P+D))
+            else:
+                #    FASE 2    #
+                # calcolo l'end_point
+                self.robot.motors.motors(0,0)
+                self.robot.servo.pinza_su()
+                self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, mask_verde)
+                print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
+                
 
             cv2.circle(self.output, self.centro, 15, (0,0,255), 2)
-            cv2.imshow('incriocio', self.output)
-            cv2.imshow('frame', frame)
+            cv2.imshow('output', self.output)
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
                 robot.motors.motors(0, 0)

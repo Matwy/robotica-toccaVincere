@@ -3,12 +3,12 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 180
+SENSITIVITY = 190
 
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
 # upper_green = np.array([135,100,255])
-lower_green = np.array([20,50,25]) 
+lower_green = np.array([20,90,25]) 
 upper_green = np.array([90,255,230])
 
 lower_green_EZ = np.array([30,120,40]) 
@@ -36,7 +36,7 @@ def scan(img):
     
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
-    cv2.imshow("debug verde", verde)
+    # cv2.imshow("debug verde", verde)
     verde=cv2.erode(verde,KERNEL,iterations=3)
     verde=cv2.dilate(verde,KERNEL,iterations=2)
 
@@ -46,7 +46,7 @@ def scan(img):
     
     bianco[verde == 255] = 255 #tolgo l'eventuale verde dal nero aggiungendolo al bianco
 
-    cv2.imshow("debug bianco", bianco)
+    # cv2.imshow("debug bianco", bianco)
     bianco=cv2.dilate(bianco,KERNEL,iterations=1)
     bianco=cv2.erode(bianco,KERNEL,iterations=4)
     mask_nero = cv2.bitwise_not(bianco)#nero
@@ -105,6 +105,22 @@ def get_nearest_area_from_2points(mask, point1, point2):
     cv2.drawContours(mask_nearest, [nearest_contour], 0, 255, -1)
     return mask_nearest
 
+def get_nearest_countourn_point(mask, point):
+    
+    # Trova i contorni dell'immagine
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # nessun contorno (errore)
+    if len(contours) == 0: return None
+    
+    # Trova il punto più vicino al punto dato tra i contorni trovati
+    closest_distance = float('inf')
+    closest_point = None
+    for contour_point in contours[0]:
+        distance = np.linalg.norm(contour_point[0] - point)
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_point = tuple(contour_point[0])
+    return closest_point
 
 def get_area_with_last_point(mask, x_last, y_last):
     amount, labels = cv2.connectedComponents(mask)

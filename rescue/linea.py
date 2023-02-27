@@ -65,37 +65,6 @@ def linea(frame, robot):
     if n_aree_bianche > 2:
         #trovo centor incrocio e lo mostro
         incrocio = Incrocio(robot).loop_centra_incrocio()
-        """
-        cv2.circle(output, centro_incrocio, 30, (0,0,255), 2)
-        if centro_incrocio == None:
-            return punto_basso[0] - (LARGHEZZA//2), 0
-
-        #prendo le collisioni e i corrispondenti angoli 
-        collisioni_angoli = get_collisioni_with_angles(mask, punto_basso, centro_incrocio)
-        
-        #prendo solo i verdi sotto la linea nera
-        collisione_angolo_piccolo = get_collisione_90(collisioni_angoli, punto_basso) #la collisione con l'angolo simile a 90
-        if collisione_angolo_piccolo == None:
-            return punto_basso[0] - (LARGHEZZA//2), 0
-        
-        verdi = get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo)
-        for verde in verdi:
-            cv2.circle(output, verde, 10, (0,150,255), 2)
-
-        if len(verdi) == 0:
-            #rimuove tutte le collisioni tranne la più ampia che tolgo con lo slicing
-            rimuovi_collisioni(mask, output, centro_incrocio, collisioni_angoli[:-1])
-        
-        if len(verdi) == 1:
-            taglio_verde_singolo(mask, output, centro_incrocio, verdi[0])
-        
-        if len(verdi) == 2:
-            doppio_verde_counter += 1
-            if doppio_verde_counter > 3: # se vede due verdi per 6 volte di fila
-                doppio_verde(robot)
-        else:
-            doppio_verde_counter = 0
-    """
 
     #trova i punti alti della linea e decidi quale seguire tenendo in considerazione quello precedente
 

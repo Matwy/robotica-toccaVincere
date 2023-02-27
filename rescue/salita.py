@@ -2,6 +2,7 @@ import cv2
 from cvtools import scan, get_bigger_area
 from global_var import ALTEZZA, LARGHEZZA
 import time
+from Incrocio import Incrocio
 def salita(robot):
     robot.motors.motors(-60, -60)
     robot.servo.pinza_salita()
@@ -10,11 +11,22 @@ def salita(robot):
     time.sleep(0.5)
     cv2.destroyAllWindows()
     piano_count = 0
+    incrocio_count = 0
 
     while True:
-        frame = robot.get_frame()
+        frame = robot.get_frame().copy()
         mask_nero, _, mask_verde = scan(frame)
         mask = get_bigger_area(mask_nero)
+        mask_bianco = cv2.bitwise_not(mask_nero)
+        amount_bianco, _ = cv2.connectedComponents(mask_bianco)
+        if amount_bianco > 3:
+            incrocio_count +=1
+        else:
+            incrocio_count = 0
+            
+        if incrocio_count > 3:
+            Incrocio(robot).loop_centra_incrocio()
+            break
         #trovo la linea nera e calcolo l'errore
         cut = mask[-40:-20, :]
         M = cv2.moments(cut)
@@ -23,6 +35,9 @@ def salita(robot):
         else:
             x = 0
 
+        robot.last_punto_alto, robot.last_punto_basso = (x, ALTEZZA-30), (x, ALTEZZA-30)
+        cv2.circle(frame, (x, ALTEZZA-30), 20, (230,230,50), 2)
+        
         sp = 30
         kp = 2
         errore = x - int(LARGHEZZA//2)
@@ -40,7 +55,7 @@ def salita(robot):
             robot.motors.motors(0, 0)
             break
 
-        cv2.imshow("salita", frame)
+        cv2.imshow("frame", frame)
         cv2.imshow("salita mask", cut)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
