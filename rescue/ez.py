@@ -7,7 +7,7 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
-from cvtools import scan_bordi, sort_aree
+from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point
 
 class EZ:
     Y_ABBASSA_BRACCIO = 35
@@ -27,6 +27,7 @@ class EZ:
         self.detector_palle = vision.ObjectDetector.create_from_options(options)
         
         base_options = core.BaseOptions(file_name=self.MODELLO_TRIANGOLI, use_coral=False, num_threads=4)
+        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.6)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_triangoli = vision.ObjectDetector.create_from_options(options)
         
@@ -51,8 +52,8 @@ class EZ:
         robot.motors.motors(0, 0)
     
     def giro_bordi(self, frame, mode):
-        
         bordi = scan_bordi(frame)
+        
         aree_muri_pavimento = cv2.bitwise_not(bordi)
         amount, labels = cv2.connectedComponents(aree_muri_pavimento)
         
@@ -60,9 +61,11 @@ class EZ:
 
         aree_muri_pavimento = sort_aree(amount, labels, 1, _blank='ez')
         if len(aree_muri_pavimento) > 0:
-            area_bassa = aree_muri_pavimento[-1]
+           area_bassa = aree_muri_pavimento[-1]
         else:
-            return
+           return None
+        
+        if area_bassa is None: return
         if mode == 'alto':
             roi_pt1, roi_pt2 = (0, 43), (self.LARGHEZZA, 45)
         else:
@@ -232,7 +235,13 @@ class EZ:
         errore_x = triangolo[0] + (triangolo[2]//2) - (self.ALTEZZA//2)
         self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
         # controllo che la y+h del triangolo sia bassa quindi vicina al robot
-        if triangolo[1]+triangolo[3] > 110:
+        if triangolo[1]+triangolo[3] > 90:
+            print("sassi")
+            self.triangolo_vicino_counter += 1
+        else:
+            self.triangolo_vicino_counter = 0
+            
+        if self.triangolo_vicino_counter > 5:
             
             if self.robot.get_tof_mesures()[1] < 250:
                 # robot troppo vicino al muro di destra quindi fai manovra
@@ -246,6 +255,7 @@ class EZ:
                 time.sleep(0.7)
                 self.robot.motors.motors(-50, -50)
                 time.sleep(0.5)
+                self.triangolo_vicino_counter = 0
                 return
             
             self.robot.motors.motors(25, 25)
@@ -271,15 +281,26 @@ class EZ:
             self.robot.servo.morti_default()
 
     def loop_triangoli(self):
+        self.triangolo_vicino_counter = 0
         while True:
             frame = self.robot.get_frame()
             self.output = frame.copy()
+            
             triangolo = self.get_selected_triangolo(frame)
-            if triangolo:
-                print("[EZ] loop_triangoli() triangolo: ", triangolo, "  tof ", self.robot.get_tof_mesures()[1])
+            if triangolo is not None:
+                centro_triangolo = (triangolo[0]+(triangolo[2]//2), triangolo[1]+(triangolo[3]//2))
+                bordi = scan_bordi(frame)
+                
+                punto_bordo_vicino_triangolo = get_nearest_countourn_point(bordi, centro_triangolo)
+                distanza_bordi_triangolo = np.linalg.norm(np.array(centro_triangolo) - punto_bordo_vicino_triangolo)
+                
+                self.output[bordi == 255] = (20, 200, 200)
+                print("[loop_triangoli()] ", triangolo, "bordi", distanza_bordi_triangolo," triangolo vicino ", self.triangolo_vicino_counter, "  tof ", self.robot.get_tof_mesures()[1])
                 self.raggiungi_triangolo(triangolo)
+                
             else:
                 # BORDI
+                triangolo_checked = False
                 mode_giro_bordi = 'alto' 
                 self.giro_bordi(frame, mode_giro_bordi)
                 
