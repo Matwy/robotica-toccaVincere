@@ -14,7 +14,7 @@ class Servo:
         self.pca.frequency = self.FREQUENCY_HZ
         self.braccio_sx = servo.Servo(self.pca.channels[1])
         self.braccio_dx = servo.Servo(self.pca.channels[2])
-        self.becco_sx = servo.Servo(self.pca.channels[9])
+        self.becco_sx = servo.Servo(self.pca.channels[10])
         self.becco_dx = servo.Servo(self.pca.channels[8])
         self.cam = servo.Servo(self.pca.channels[4])
         self.morti = servo.Servo(self.pca.channels[3])

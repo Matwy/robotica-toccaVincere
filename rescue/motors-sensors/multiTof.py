@@ -51,7 +51,11 @@ class sensors_stream:
         while True:
             distanza_tmp = []
             for index, sensor in enumerate(self.vl53):
-                dis = sensor.range
+                time.sleep(0.05)
+                try:
+                    dis = sensor.range
+                except:
+                    print("l'i2c almeno diventa più simpatico con un trycatch le donne no")
                 if(dis == "None"):
                     continue
                 else:

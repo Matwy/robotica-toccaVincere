@@ -33,7 +33,11 @@ class Robot():
         self.cam_stream.stop()
         time.sleep(0.3)
         self.cam_stream = PiVideoStream.PiVideoStream(framerate=7, resolution=(160, 128)).start()
-        
+    
+    def restart_tof(self):
+        self.sensors_stream.stop()
+        self.sensors_stream = sensors_stream().start()
+      
     def check_ez(self):
         if self.cavo_sinistra.is_pressed or self.cavo_destra.is_pressed:
             self.motors.motors(0,0)

@@ -8,8 +8,8 @@ SENSITIVITY = 175
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
 # upper_green = np.array([135,100,255])
-lower_green = np.array([0,20,62]) 
-upper_green = np.array([150,133,160])
+lower_green = np.array([40,90,58]) 
+upper_green = np.array([95,255,160])
 
 lower_green_EZ = np.array([30,120,40]) 
 upper_green_EZ = np.array([130,255,205])
@@ -37,7 +37,7 @@ def scan(img):
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, lower_green, upper_green)
     # cv2.imshow("debug verde", verde)
-    verde=cv2.erode(verde,KERNEL,iterations=3)
+    verde=cv2.erode(verde,KERNEL,iterations=1)
     verde=cv2.dilate(verde,KERNEL,iterations=2)
 
     gray_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

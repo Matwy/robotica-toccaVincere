@@ -7,11 +7,10 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
-from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point
-
+from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point, scan_nero
 class EZ:
     Y_ABBASSA_BRACCIO = 50
-    Y_BECCO_SOPRA = 80
+    Y_BECCO_SOPRA = 83
     Y_BECCO_SOTTO = 110
     MODELLO_PALLE = 'giugia_pestami_le_palle.tflite' # le mie non le vittime
     MODELLO_TRIANGOLI = 'giugia_leccami_il_triangolo.tflite'
@@ -57,7 +56,7 @@ class EZ:
         aree_muri_pavimento = cv2.bitwise_not(bordi)
         amount, labels = cv2.connectedComponents(aree_muri_pavimento)
         
-        if amount == 1: self.robot.motors.motors(80, 30) # destra
+        if amount == 1: self.robot.motors.motors(50, 35) # destra
 
         aree_muri_pavimento = sort_aree(amount, labels, 1, _blank='ez')
         if len(aree_muri_pavimento) > 0:
@@ -68,6 +67,8 @@ class EZ:
         if area_bassa is None: return
         if mode == 'alto':
             roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
+        elif mode == 'basso':
+            roi_pt1, roi_pt2 = (0, 90), (self.LARGHEZZA, 95)
         else:
             roi_pt1, roi_pt2 = (0, 60), (self.LARGHEZZA, 65)
             
@@ -76,7 +77,7 @@ class EZ:
         
         if np.count_nonzero(roi == 0) < 100:
             #destra
-            self.robot.motors.motors(80, 30)
+            self.robot.motors.motors(50, 35)
             return
 
         roi_mask_bordi = cv2.bitwise_not(roi)
@@ -90,7 +91,10 @@ class EZ:
             self.robot.motors.motors(20, 4*errore_bordo)
         else:
             # sinistra pott
-            self.robot.motors.motors(-30, 50)
+            if mode == 'basso':
+                self.robot.motors.motors(-20, 30)
+            else:
+                self.robot.motors.motors(-30, 50)
             
     
     def get_selected_ball(self, frame):
@@ -123,7 +127,7 @@ class EZ:
                 return
                 
         # PID tenendo in considerazione la distanza della palla
-        speed = 50 if ball_y < self.Y_ABBASSA_BRACCIO else 20
+        speed = 50 if ball_y < self.Y_ABBASSA_BRACCIO+10 else 20
         errore_x = ball_x - self.ALTEZZA//1.5
         self.robot.motors.motors(speed + int(errore_x//2), speed - int(errore_x//2))
         if ball_y > self.Y_ABBASSA_BRACCIO and self.pinza_su:
@@ -149,11 +153,11 @@ class EZ:
         
         if ball_y > self.Y_BECCO_SOPRA and ball_y < self.Y_BECCO_SOTTO and abs(errore_x) < 10 and not self.pinza_su:
             # raccogli palla se è dentro i becchi e al centro dello schermo e la pinza è giu
-            self.robot.motors.motors(20, 20)
-            time.sleep(1.4)
+            self.robot.motors.motors(40, 40)
+            time.sleep(1)
             self.robot.servo.becco_chiuso()
             time.sleep(0.3)
-            self.robot.motors.motors(-20, -20)
+            self.robot.motors.motors(-35, -35)
             self.robot.servo.pinza_su()
             time.sleep(1)
             if tipo_palla <= 0: # distinzione morte vive
@@ -180,7 +184,7 @@ class EZ:
             if ball:
                 # PALLE 
                 palla_persa_count = 0
-                if ball[1] > 30:
+                if ball[1] > self.Y_ABBASSA_BRACCIO:
                     tipo_palla += 1 if ball[-1] == 1 else -1
                 print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla, " tof ", self.robot.get_tof_mesures()[1])
                 self.raccogli_palla(ball, tipo_palla)
@@ -229,27 +233,26 @@ class EZ:
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,255), 4)
             return triangoli[0]
     
-    def raggiungi_triangolo(self, triangolo):
-        speed = 50
+    def raggiungi_triangolo(self, triangolo, tipo_triangolo):
+        speed = 70
         errore_x = triangolo[0] + (triangolo[2]//2) - (self.ALTEZZA//2)
         self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
         # controllo che la y+h del triangolo sia bassa quindi vicina al robot
-        if triangolo[1]+triangolo[3] > 90:
-            print("sassi")
+        if triangolo[1]+triangolo[3] > 60:
             self.triangolo_vicino_counter += 1
         else:
             self.triangolo_vicino_counter = 0
             
         if self.triangolo_vicino_counter > 5:
             
-            if self.robot.get_tof_mesures()[1] < 250:
+            if self.robot.get_tof_mesures()[1] < 400:
                 # robot troppo vicino al muro di destra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
-                time.sleep(1)
+                time.sleep(1.5)
                 self.robot.motors.motors(-60, 60)
                 time.sleep(0.7)
-                self.robot.motors.motors(80, 80)
-                time.sleep(1)
+                self.robot.motors.motors(100, 100)
+                time.sleep(0.7)
                 self.robot.motors.motors(60, -60)
                 time.sleep(0.7)
                 self.robot.motors.motors(-50, -50)
@@ -267,26 +270,33 @@ class EZ:
             time.sleep(3)
             self.robot.motors.motors(-25, -25)
             self.robot.servo.pinza_svuota_cassoni()
-            time.sleep(1)
+            time.sleep(1.5)
             
-            if triangolo[-1] == 0:
+            if tipo_triangolo < 0:
                 self.robot.servo.vivi_svuota()
                 self.triangolo_verde += 1
             else:
                 self.robot.servo.morti_svuota()
                 self.triangolo_rosso += 1
             time.sleep(1)
+            self.triangolo_vicino_counter = 0
             self.robot.servo.vivi_default()
             self.robot.servo.morti_default()
+            self.robot.motors.motors(40, 0)
+            time.sleep(0.7)
+
 
     def loop_triangoli(self):
         self.triangolo_vicino_counter = 0
+        tipo_triangolo = 0
         while True:
             frame = self.robot.get_frame()
             self.output = frame.copy()
             
             triangolo = self.get_selected_triangolo(frame)
             if triangolo is not None:
+                tipo_triangolo += -1 if triangolo[-1] == 0 else 1
+                
                 centro_triangolo = (triangolo[0]+(triangolo[2]//2), triangolo[1]+(triangolo[3]//2))
                 bordi = scan_bordi(frame)
                 
@@ -294,12 +304,12 @@ class EZ:
                 distanza_bordi_triangolo = np.linalg.norm(np.array(centro_triangolo) - punto_bordo_vicino_triangolo)
                 
                 self.output[bordi == 255] = (20, 200, 200)
-                print("[loop_triangoli()] ", triangolo, "bordi", distanza_bordi_triangolo," triangolo vicino ", self.triangolo_vicino_counter, "  tof ", self.robot.get_tof_mesures()[1])
-                self.raggiungi_triangolo(triangolo)
+                print("[loop_triangoli()] ", triangolo, "bordi", distanza_bordi_triangolo," triangolo vicino ", self.triangolo_vicino_counter, "  tof ", self.robot.get_tof_mesures()[1], "  tipo_triangolo  ", tipo_triangolo)
+                self.raggiungi_triangolo(triangolo, tipo_triangolo)
                 
             else:
                 # BORDI
-                triangolo_checked = False
+                tipo_triangolo = 0
                 mode_giro_bordi = 'altissimo' 
                 self.giro_bordi(frame, mode_giro_bordi)
                 
@@ -315,3 +325,39 @@ class EZ:
                 self.robot.servo.deinit_pca()
                 cv2.destroyAllWindows()
                 exit()
+    
+    def loop_uscita(self):
+        while True:
+            frame = self.robot.get_frame().copy()
+            
+            self.giro_bordi(frame, 'basso')
+            
+            tof_dx = self.robot.get_tof_mesures()[1]
+            print("tof_dx", tof_dx)
+            if tof_dx > 600:
+                t_inizio = time.time()
+                self.robot.motors.motors(40, -40)
+                self.robot.servo.cam_linea()
+                time.sleep(0.3)
+                while time.time() - t_inizio < 3.5:
+                    tof_front = self.robot.get_tof_mesures()[2]
+                    print("front_tof", tof_front)
+                    if tof_front > 1000:
+                        print("buso")
+                        self.robot.motors.motors(0, 0)
+                        time.sleep(2)
+                self.robot.servo.cam_EZ()
+                    
+                        
+                            
+                
+            
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q"):
+                self.robot.motors.motors(0, 0)
+                self.robot.cam_stream.stop()
+                self.robot.sensors_stream.stop()
+                self.robot.servo.deinit_pca()
+                cv2.destroyAllWindows()
+                exit()
+            
