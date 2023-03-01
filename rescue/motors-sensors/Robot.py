@@ -38,7 +38,6 @@ class Robot():
         if self.cavo_sinistra.is_pressed or self.cavo_destra.is_pressed:
             self.motors.motors(0,0)
             print("conduzio")
-            time.sleep(3)
             if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                 self.motors.motors(0,0)
                 return True
@@ -46,13 +45,13 @@ class Robot():
             sx_speed, dx_speed = (0,30) if self.cavo_sinistra.is_pressed else (30,0)    
             
             self.motors.motors(-sx_speed,-dx_speed)
-            t_fine = time.time()+3
+            t_fine = time.time()+4
             while time.time() < t_fine:
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                     return True
             
             self.motors.motors(sx_speed,dx_speed)
-            t_fine = time.time()+6
+            t_fine = time.time()+5
             while time.time() < t_fine:
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                     return True

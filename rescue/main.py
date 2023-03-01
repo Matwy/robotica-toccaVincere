@@ -73,7 +73,7 @@ def rescue(robot):
         """
         if robot.check_ez():
             ez = EZ(robot)
-            # ez.loop_palle()
+            ez.loop_palle()
             ez.loop_triangoli()
         
         cv2.imshow("frame", frame)
@@ -91,5 +91,5 @@ if __name__ == '__main__':
     ez = EZ(robot)
     # ez.loop_palle()
     ez.loop_triangoli()
-    # print("[MAIN] rescue()")
+    print("[MAIN] rescue()")
     # rescue(robot)

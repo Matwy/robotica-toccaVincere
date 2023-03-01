@@ -45,7 +45,7 @@ class Servo:
     
      
     def cam_EZ(self):
-        self.set_cam_angle(120)
+        self.set_cam_angle(110)
     
     """
     PINZA
@@ -92,12 +92,14 @@ class Servo:
             time.sleep(0.2)
     
     def becco_molla_vivi(self):
+        self.morti.angle = 165
         self.becco_sx.angle = 115
         for i in range(3):
             self.becco_dx.angle = 60
             time.sleep(0.2)
             self.becco_dx.angle = 30
             time.sleep(0.2)        
+        self.morti.angle = 180
     
     """
     CASSONI

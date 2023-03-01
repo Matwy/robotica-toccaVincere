@@ -174,7 +174,7 @@ def gap(robot):
     while True:
         if robot.check_ez():
             ez = EZ(robot)
-            # ez.loop_palle()
+            ez.loop_palle()
             ez.loop_triangoli()
 
         frame = robot.get_frame().copy()

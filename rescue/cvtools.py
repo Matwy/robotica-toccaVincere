@@ -3,13 +3,13 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 190
+SENSITIVITY = 175
 
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
 # upper_green = np.array([135,100,255])
-lower_green = np.array([20,90,25]) 
-upper_green = np.array([90,255,230])
+lower_green = np.array([0,20,62]) 
+upper_green = np.array([150,133,160])
 
 lower_green_EZ = np.array([30,120,40]) 
 upper_green_EZ = np.array([130,255,205])
@@ -48,7 +48,7 @@ def scan(img):
 
     # cv2.imshow("debug bianco", bianco)
     bianco=cv2.dilate(bianco,KERNEL,iterations=1)
-    bianco=cv2.erode(bianco,KERNEL,iterations=4)
+    bianco=cv2.erode(bianco,KERNEL,iterations=5)
     mask_nero = cv2.bitwise_not(bianco)#nero
 
     return mask_nero, bianco, verde
@@ -472,16 +472,17 @@ def scan_bordi(img):
     laplacian = np.uint8(laplacian*255)
     
     #laplacian = cv2.morphologyEx(laplacian, cv2.MORPH_CLOSE, kernel)
-    laplacian = cv2.blur(laplacian,(5,5))
+    laplacian = cv2.blur(laplacian,(3,3))
     
     #bordi = cv2.Canny(laplacian,50,200)
     bordi = cv2.adaptiveThreshold(255-laplacian,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,101,50)
     kernel = np.ones((5,5),np.uint8)
-    bordi = cv2.erode(bordi,kernel,iterations = 2)
+    bordi = cv2.erode(bordi,kernel,iterations = 4)
     
     bordi = cv2.bitwise_not(bordi)
     
     bordo = get_bigger_component(bordi)
+    cv2.imshow("bordi", bordo)
     return bordo
 
 def sort_aree(amount, labels, coordinata, _blank='linea'):

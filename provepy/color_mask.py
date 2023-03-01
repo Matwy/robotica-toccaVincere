@@ -4,7 +4,19 @@ from PiVideoStream import PiVideoStream
 from time import sleep
 cv2.namedWindow('image')
 def nothing(x):
-    pass 
+    pass
+
+KERNEL = np.ones((5,5), np.uint8)
+
+cv2.namedWindow('image')
+cv2.namedWindow('puzzo')
+
+cv2.createTrackbar('ERODE', 'image', 0, 10, nothing)
+cv2.createTrackbar('DILATE', 'image', 0, 10, nothing)
+
+cv2.setTrackbarPos('ERODE', 'image', 10)
+cv2.setTrackbarPos('DILATE', 'image', 10)
+
 cv2.createTrackbar('LOW_H', 'image', 0, 179, nothing)
 cv2.createTrackbar('LOW_S', 'image', 0, 255, nothing)
 cv2.createTrackbar('LOW_V', 'image', 0, 255, nothing)
@@ -45,7 +57,13 @@ while True:
     upper = np.array([high_h, high_s, high_v])
 
     mask = cv2.inRange(hsv, lower, upper)
+    
+    erode_iteration = cv2.getTrackbarPos('ERODE', 'image')
+    dilate_iteration = cv2.getTrackbarPos('DILATE', 'image')
+    bianco_dilate=cv2.dilate(bianco,KERNEL,iterations=dilate_iteration)
+    bianco_erode=cv2.erode(bianco_dilate,KERNEL,iterations=erode_iteration)
 
+    pizzo = cv2.hconcat([bianco_erode, bianco_dilate, bianco])
     print('lower')
     print(lower)
     print('upper')
@@ -53,6 +71,7 @@ while True:
 
     img = cv2.hconcat([mask, bianco])
     cv2.imshow('image', img)
+    cv2.imshow('puzzo', pizzo)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):

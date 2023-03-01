@@ -10,9 +10,9 @@ from tflite_support.task import vision
 from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point
 
 class EZ:
-    Y_ABBASSA_BRACCIO = 35
-    Y_BECCO_SOPRA = 64
-    Y_BECCO_SOTTO = 90
+    Y_ABBASSA_BRACCIO = 50
+    Y_BECCO_SOPRA = 80
+    Y_BECCO_SOTTO = 110
     MODELLO_PALLE = 'giugia_pestami_le_palle.tflite' # le mie non le vittime
     MODELLO_TRIANGOLI = 'giugia_leccami_il_triangolo.tflite'
     
@@ -67,13 +67,12 @@ class EZ:
         
         if area_bassa is None: return
         if mode == 'alto':
-            roi_pt1, roi_pt2 = (0, 43), (self.LARGHEZZA, 45)
+            roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
         else:
             roi_pt1, roi_pt2 = (0, 60), (self.LARGHEZZA, 65)
             
         roi = area_bassa[roi_pt1[1] : roi_pt2[1], roi_pt1[0] : roi_pt2[0]]
         cv2.rectangle(self.output, roi_pt1, roi_pt2, (125, 125, 7), 2)
-        cv2.imshow("bordi", roi)
         
         if np.count_nonzero(roi == 0) < 100:
             #destra
@@ -151,7 +150,7 @@ class EZ:
         if ball_y > self.Y_BECCO_SOPRA and ball_y < self.Y_BECCO_SOTTO and abs(errore_x) < 10 and not self.pinza_su:
             # raccogli palla se è dentro i becchi e al centro dello schermo e la pinza è giu
             self.robot.motors.motors(20, 20)
-            time.sleep(0.5)
+            time.sleep(1.4)
             self.robot.servo.becco_chiuso()
             time.sleep(0.3)
             self.robot.motors.motors(-20, -20)
@@ -265,7 +264,7 @@ class EZ:
             self.robot.motors.motors(-80, 80)
             time.sleep(2.2)
             self.robot.motors.motors(-40, -40)
-            time.sleep(2.7)
+            time.sleep(3)
             self.robot.motors.motors(-25, -25)
             self.robot.servo.pinza_svuota_cassoni()
             time.sleep(1)
@@ -301,7 +300,7 @@ class EZ:
             else:
                 # BORDI
                 triangolo_checked = False
-                mode_giro_bordi = 'alto' 
+                mode_giro_bordi = 'altissimo' 
                 self.giro_bordi(frame, mode_giro_bordi)
                 
             if self.triangolo_rosso >= 1 and self.triangolo_verde >= 1:
