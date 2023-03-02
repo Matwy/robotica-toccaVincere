@@ -30,8 +30,8 @@ def rescue(robot):
         frame = robot.get_frame().copy()
         errore_linea, errore_angolo = linea(frame, robot)
         
-        speed = 35
-        kp, ki, kd = 1.8, 1, 2.2
+        speed = 40
+        kp, ki, kd = 2.3, 1, 2.2
         P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
         robot.motors.motors(speed + (P+D), speed - (P+D))
         print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
@@ -39,13 +39,13 @@ def rescue(robot):
         OSTACOLO
         """
         _, _, front_tof = robot.get_tof_mesures()
-        if front_tof < 100:
+        if front_tof < 130:
             ostacolo_count += 1
         else:
             ostacolo_count = 0
         
-        if ostacolo_count > 5:
-            ostacolo(robot)
+        if ostacolo_count > 4:
+            ostacolo(robot, 1)
         """
         CUBOBBLU
         """
@@ -88,9 +88,9 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    ez = EZ(robot)
+    # ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()
-    ez.loop_uscita()
+    # ez.loop_uscita()
     print("[MAIN] rescue()")
-    # rescue(robot)
+    rescue(robot)
