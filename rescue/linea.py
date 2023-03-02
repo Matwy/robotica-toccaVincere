@@ -48,7 +48,6 @@ def linea(frame, robot):
     if amount_bianco < 3:
         gap(robot)
         return 0, 0
-    print(amount_bianco)
     #trovo l'inizio della linea 
     puntoL, puntoR = calcola_inizio_linea(mask_nearest_area, amount_bianco, labels_bianco)
     punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)

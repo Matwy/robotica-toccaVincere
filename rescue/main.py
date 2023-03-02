@@ -6,6 +6,7 @@ from linea import linea
 from ostacolo import ostacolo
 from cuboblu import detect_blu, centra_raccogli_cubo
 from salita import salita
+from cvtools import isRosso
 from ez import EZ
 
 import time
@@ -21,6 +22,7 @@ def rescue(robot):
     ostacolo_count = 0
     cubo_count = 0
     salita_count = 0
+    rosso_count = 0
 
 
     while True:
@@ -34,7 +36,7 @@ def rescue(robot):
         kp, ki, kd = 2.3, 1, 2.2
         P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
         robot.motors.motors(speed + (P+D), speed - (P+D))
-        print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
+        # print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
         """
         OSTACOLO
         """
@@ -75,6 +77,18 @@ def rescue(robot):
             ez = EZ(robot)
             ez.loop_palle()
             ez.loop_triangoli()
+        
+        """
+        ROSSO
+        """
+        if isRosso(frame):
+            rosso_count += 1
+        else:
+            rosso_count = 0
+        
+        if rosso_count > 5:
+            robot.motors.motors(0,0)
+            time.sleep(6)
         
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF

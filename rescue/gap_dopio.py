@@ -1,5 +1,5 @@
 import cv2
-from cvtools import scan, get_bigger_area, scan_nero, sort_aree, get_nearest_area_from_2points
+from cvtools import scan, get_bigger_area, scan_nero, sort_aree, get_nearest_area_from_2points, isRosso
 import time
 from global_var import ALTEZZA, LARGHEZZA
 from ez import EZ
@@ -112,11 +112,22 @@ def trova_linea(robot):
     avanti = True
 
     while True:
+        """ CHECK EZ """
         if robot.check_ez():
             ez = EZ(robot)
             # ez.loop_palle()
             ez.loop_triangoli()
-
+            
+        """"CHECK ROSO"""
+        if isRosso(frame):
+            rosso_count += 1
+        else:
+            rosso_count = 0
+        
+        if rosso_count > 5:
+            robot.motors.motors(0,0)
+            time.sleep(6)
+            
         frame = robot.get_frame()
         centro_linea, angle = get_centro_linea(robot, frame)
         

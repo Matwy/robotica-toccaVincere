@@ -8,14 +8,12 @@ SENSITIVITY = 175
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
 # upper_green = np.array([135,100,255])
-lower_green = np.array([40,90,58]) 
-upper_green = np.array([95,255,160])
+lower_green = np.array([40,66,55]) 
+upper_green = np.array([90,255,121])
 
 lower_green_EZ = np.array([30,120,40]) 
 upper_green_EZ = np.array([130,255,205])
 
-lower_red = np.array([0,70,90])
-upper_red = np.array([20,255,240])
 lower_red2 = np.array([130,70,90])
 upper_red2 = np.array([255,255,240])
 
@@ -512,14 +510,14 @@ def get_green_uscita(frame):
 
 def isRosso(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    rosso = cv2.inRange(hsv, lower_red, upper_red)
+    # rosso = cv2.inRange(hsv, lower_red, upper_red)
     rosso2 = cv2.inRange(hsv, lower_red2, upper_red2)
     
-    rosso=rosso+rosso2
+    # rosso=rosso+rosso2
     
-    rosso = cv2.erode(rosso,KERNEL,iterations=2)
+    rosso = cv2.erode(rosso2,KERNEL,iterations=2)
     rosso = cv2.dilate(rosso,KERNEL,iterations=2)
     
     n_rosso = np.count_nonzero(rosso)
-
-    return n_rosso > 4000
+    print(n_rosso)
+    return n_rosso > 2000

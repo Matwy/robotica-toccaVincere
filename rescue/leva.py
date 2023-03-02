@@ -2,10 +2,18 @@ from gpiozero import Button
 import os
 import time
 import signal
+# Motors
+import busio
+from board import SCL, SDA
+from adafruit_bus_device import i2c_device
 
 leva = Button(12)
 pid = None
 run = 0
+
+# Motors
+i2c_bus = busio.I2C(SCL, SDA)
+arduinoi2c = i2c_device.I2CDevice(i2c_bus, 0x10)
 
 def run_script():
     # Change the working directory to the root of your project where your script is located
@@ -25,6 +33,8 @@ def stop_script():
     # Send a SIGTERM signal to the process with the given PID
     global pid
     if pid:
+        arduinoi2c.write(bytes([0,0]))
+        arduinoi2c.write(bytes([1,0]))
         os.kill(pid, signal.SIGTERM)
 
 print ("[LEVA] Waiting")
@@ -41,6 +51,7 @@ while True:
         stop_script()
         print ("[LEVA] ---- Stopped ---- " )
         run = 0
-
+        arduinoi2c.write(bytes([1,0]))
+        arduinoi2c.write(bytes([0,0]))
         while not leva.is_pressed:
             time.sleep(0.1)

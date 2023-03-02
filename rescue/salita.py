@@ -20,15 +20,18 @@ def salita(robot):
         mask_bianco = cv2.bitwise_not(mask_nero)
         amount_bianco, _ = cv2.connectedComponents(mask_bianco)
         if amount_bianco > 3:
+            print("incrocio_count", incrocio_count)
             incrocio_count +=1
         else:
             incrocio_count = 0
             
-        if incrocio_count > 3:
+        if incrocio_count > 5:
+            robot.is_salita()
             Incrocio(robot).loop_centra_incrocio()
+            robot.servo.pinza_su()
             break
         #trovo la linea nera e calcolo l'errore
-        cut = mask[-40:-20, :]
+        cut = mask[-40:-10, :]
         M = cv2.moments(cut)
         if M["m00"] != 0:
             x = int(M["m10"] / M["m00"])
@@ -36,11 +39,11 @@ def salita(robot):
             x = 0
 
         robot.last_punto_alto, robot.last_punto_basso = (x, ALTEZZA-30), (x, ALTEZZA-30)
-        cv2.circle(frame, (x, ALTEZZA-30), 20, (230,230,50), 2)
+        cv2.circle(frame, (x, ALTEZZA-10), 20, (230,230,50), 2)
         
         sp = 30
-        kp = 2
-        errore = x - int(LARGHEZZA//2)
+        kp = 1
+        errore = int((x*kp) - (LARGHEZZA//2))
         robot.motors.motors(sp + errore, sp - errore)
         
         if not robot.is_salita():
@@ -48,7 +51,7 @@ def salita(robot):
         else:
             piano_count = 0
         
-        if piano_count > 5:
+        if piano_count > 10:
             robot.motors.motors(30,30)
             robot.servo.pinza_su()
             time.sleep(0.3)

@@ -107,7 +107,8 @@ class Incrocio:
             _centro = Incrocio.get_incrocio(amount_bianco, labels_bianco)
             if self.centro is None: self.centro = _centro
             # controlli per uscire
-            if _centro is None: return
+            if _centro is None:
+                return
             
             if self.centro is None or n_aree_bianche_senza_loli <= 2 or np.linalg.norm(np.array(self.centro) - np.array(_centro)) > 50:
                 print('[INCROCIO] USCITA')
