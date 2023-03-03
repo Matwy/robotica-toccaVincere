@@ -115,9 +115,12 @@ def trova_linea(robot):
         """ CHECK EZ """
         if robot.check_ez():
             ez = EZ(robot)
-            # ez.loop_palle()
+            ez.loop_palle()
             ez.loop_triangoli()
+            ez.loop_uscita()
             
+        frame = robot.get_frame().copy()
+        
         """"CHECK ROSO"""
         if isRosso(frame):
             rosso_count += 1
@@ -128,7 +131,6 @@ def trova_linea(robot):
             robot.motors.motors(0,0)
             time.sleep(6)
             
-        frame = robot.get_frame()
         centro_linea, angle = get_centro_linea(robot, frame)
         
         if centro_linea != False and avanti:
@@ -183,13 +185,24 @@ def gap(robot):
     quit_gap_counter = 0
     no_linea_counter = 0
     while True:
-        if robot.check_ez():
+        if robot.check_ez() or 1==1:
             ez = EZ(robot)
             ez.loop_palle()
             ez.loop_triangoli()
+            ez.loop_uscita()
 
-        frame = robot.get_frame().copy()
+        frame = robot.get_frame().copy().copy()
 
+        """"CHECK ROSO"""
+        if isRosso(frame):
+            rosso_count += 1
+        else:
+            rosso_count = 0
+        
+        if rosso_count > 5:
+            robot.motors.motors(0,0)
+            time.sleep(6)
+            
         """ QUIT GAP """
         if not is_gap(robot, frame):
             quit_gap_counter += 1

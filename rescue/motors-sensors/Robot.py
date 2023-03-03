@@ -35,6 +35,11 @@ class Robot():
         time.sleep(0.3)
         self.cam_stream = PiVideoStream.PiVideoStream(framerate=7, resolution=(160, 128)).start()
     
+    def camstream_linea(self):
+        self.cam_stream.stop()
+        time.sleep(0.3)
+        self.cam_stream = PiVideoStreamUndistorted.PiVideoStream().start()
+    
     def restart_tof(self):
         self.sensors_stream.stop()
         self.sensors_stream = sensors_stream().start()

@@ -7,7 +7,7 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
-from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point, scan_nero
+from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point
 class EZ:
     Y_ABBASSA_BRACCIO = 50
     Y_BECCO_SOPRA = 83
@@ -168,7 +168,7 @@ class EZ:
                 self.palline_vive += 1
             self.robot.servo.becco_aperto()
             self.pinza_su = True
-            tipo_palla = 0
+            return 'raccolta'
     
     def loop_palle(self):
         palla_persa_count = 0
@@ -187,7 +187,8 @@ class EZ:
                 if ball[1] > self.Y_ABBASSA_BRACCIO:
                     tipo_palla += 1 if ball[-1] == 1 else -1
                 print("[EZ] loop_palle() palla: ", ball, "tipo_palla ", tipo_palla, " tof ", self.robot.get_tof_mesures()[1])
-                self.raccogli_palla(ball, tipo_palla)
+                if self.raccogli_palla(ball, tipo_palla) == 'raccolta':
+                    tipo_palla = 0
             elif self.pinza_su:
                 # BORDI
                 tipo_palla = 0
@@ -268,14 +269,16 @@ class EZ:
             time.sleep(2.2)
             self.robot.motors.motors(-40, -40)
             time.sleep(3)
-            self.robot.motors.motors(-25, -25)
             self.robot.servo.pinza_svuota_cassoni()
-            time.sleep(1.5)
             
             if tipo_triangolo < 0:
+                self.robot.motors.motors(-30, -25)
+                time.sleep(1.5)
                 self.robot.servo.vivi_svuota()
                 self.triangolo_verde += 1
             else:
+                self.robot.motors.motors(-25, -30)
+                time.sleep(1.5)
                 self.robot.servo.morti_svuota()
                 self.triangolo_rosso += 1
             time.sleep(1)
@@ -327,9 +330,15 @@ class EZ:
                 exit()
     
     def trova_buco_uscita(self):
+        self.robot.motors.motors(0,0)
+        self.robot.servo.cam_linea()
+        time.sleep(0.3)
+        if self.robot.get_tof_mesures()[2]:
+            self.robot.motors.motors(30,30)
+            time.sleep(2)
+        
         t_inizio = time.time()
         self.robot.motors.motors(40, -40)
-        self.robot.servo.cam_linea()
         time.sleep(0.3)
         while time.time() - t_inizio < 3.5:
             tof_front = self.robot.get_tof_mesures()[2]
@@ -341,20 +350,40 @@ class EZ:
         self.robot.servo.cam_EZ()
         return False
     
+    def is_striscia_nera(self):
+        frame = self.robot.get_frame().copy()
+        gray_scale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray_scale, (7,7), 5)
+        ret, nero = cv2.threshold(blur,0,150,cv2.THRESH_BINARY)
+        cv2.imshow("ernegro", nero)
+        nero_points = np.count_nonzero(nero==0)
+        print("non zero", nero_points)
+        if nero_points > 2000:
+            return True
+        return False 
+    
     def controllo_tipo_uscita(self):
         t_inizio = time.time()
         self.robot.motors.motors(20, 20)
         self.robot.servo.cam_linea()
         time.sleep(0.3)
-        while time.time() - t_inizio < 3.5:
+        while time.time() - t_inizio < 6:
             frame = self.robot.get_frame().copy()
-            nero = scan_nero(frame)
-            cv2.imshow('nero_uscita', nero)
-            key = cv2.waitKey(1) & 0xFF
+            if self.is_striscia_nera():
+                self.robot.motors.motors(40, 40)
+                time.sleep(1.5)
+                return True
             
+            key = cv2.waitKey(1) & 0xFF
+            if self.robot.cavo_sinistra.is_pressed or self.robot.cavo_destra.is_pressed:
+                break
+        
+        self.robot.motors.motors(-70, -70)
+        time.sleep(0.7)
         self.robot.servo.cam_EZ()
-        self.robot.motors.motors(-70, -20)
-        time.sleep(1)
+        self.robot.motors.motors(-80, 80)
+        time.sleep(2.2)
+        return False
         
     def loop_uscita(self):
         while True:
@@ -366,7 +395,12 @@ class EZ:
             print("tof_dx", tof_dx)
             if tof_dx > 750:
                 if self.trova_buco_uscita():
-                    self.controllo_tipo_uscita()
+                    if self.controllo_tipo_uscita():
+                        self.robot.motors.motors(0, 0)
+                        self.robot.camstream_linea()
+                        self.robot.servo.cam_linea()
+                        time.sleep(1)
+                        break
             
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
@@ -376,4 +410,3 @@ class EZ:
                 self.robot.servo.deinit_pca()
                 cv2.destroyAllWindows()
                 exit()
-            
