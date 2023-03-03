@@ -110,6 +110,7 @@ def trova_linea(robot):
     print("[GAP] BIANCHETTO")
     timer_alza_cam = time.time()
     avanti = True
+    rosso_count = 0
 
     while True:
         """ CHECK EZ """
@@ -184,8 +185,9 @@ def gap(robot):
     cv2.destroyAllWindows()
     quit_gap_counter = 0
     no_linea_counter = 0
+    rosso_count = 0
     while True:
-        if robot.check_ez() or 1==1:
+        if robot.check_ez():
             ez = EZ(robot)
             ez.loop_palle()
             ez.loop_triangoli()

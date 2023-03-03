@@ -92,11 +92,7 @@ class Servo:
             time.sleep(0.2)
     
     def becco_molla_vivi(self):
-        # cassone vivi sposta la roba indietro
-        self.vivi.angle = 10
-        time.sleep(0.3)
-            
-        self.morti.angle = 165
+        self.morti.angle = 155
         self.becco_sx.angle = 115
         for i in range(3):
             self.becco_dx.angle = 60
@@ -104,13 +100,11 @@ class Servo:
             self.becco_dx.angle = 30
             time.sleep(0.2)        
         
-        self.morti.angle = 155
-        self.vivi.angle = 0
+        self.vivi.angle = 5
         time.sleep(0.3)
         self.morti.angle = 180
 
         self.pinza_svuota_cassoni()
-        # cassone vivi sposta la roba indietro
         self.vivi.angle = 0
         
     """

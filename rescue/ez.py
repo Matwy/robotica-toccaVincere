@@ -246,7 +246,7 @@ class EZ:
             
         if self.triangolo_vicino_counter > 5:
             
-            if self.robot.get_tof_mesures()[1] < 400:
+            if self.robot.get_tof_mesures()[1] < 350:
                 # robot troppo vicino al muro di destra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
                 time.sleep(1.5)
@@ -267,7 +267,10 @@ class EZ:
             time.sleep(2)
             self.robot.motors.motors(-80, 80)
             time.sleep(2.2)
-            self.robot.motors.motors(-40, -40)
+            if tipo_triangolo < 0:
+                self.robot.motors.motors(-40, -35)
+            else:
+                self.robot.motors.motors(-30, -40)
             time.sleep(3)
             self.robot.servo.pinza_svuota_cassoni()
             
@@ -330,7 +333,7 @@ class EZ:
                 exit()
     
     def trova_buco_uscita(self):
-        self.robot.motors.motors(0,0)
+        self.robot.motors.motors(40,-40)
         self.robot.servo.cam_linea()
         time.sleep(0.3)
         if self.robot.get_tof_mesures()[2]:
@@ -339,7 +342,6 @@ class EZ:
         
         t_inizio = time.time()
         self.robot.motors.motors(40, -40)
-        time.sleep(0.3)
         while time.time() - t_inizio < 3.5:
             tof_front = self.robot.get_tof_mesures()[2]
             print("front_tof", tof_front)
@@ -358,13 +360,13 @@ class EZ:
         cv2.imshow("ernegro", nero)
         nero_points = np.count_nonzero(nero==0)
         print("non zero", nero_points)
-        if nero_points > 2000:
+        if nero_points > 2500:
             return True
         return False 
     
     def controllo_tipo_uscita(self):
         t_inizio = time.time()
-        self.robot.motors.motors(20, 20)
+        self.robot.motors.motors(30, 30)
         self.robot.servo.cam_linea()
         time.sleep(0.3)
         while time.time() - t_inizio < 6:

@@ -23,8 +23,6 @@ def rescue(robot):
     cubo_count = 0
     salita_count = 0
     rosso_count = 0
-
-
     while True:
         """
         LINEA
