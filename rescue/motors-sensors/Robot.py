@@ -13,8 +13,8 @@ class Robot():
         self.sensors_stream = sensors_stream().start()
         time.sleep(0.5)
         self.motors = Motors()
-        self.cavo_sinistra = Button(13)
-        self.cavo_destra = Button(26)
+        self.cavo_sinistra = Button(4)
+        self.cavo_destra = Button(14)
         self.last_punto_alto = (136//2, 0)
         self.last_punto_basso = (136//2, 137)
             

@@ -283,7 +283,7 @@ class EZ:
             self.robot.servo.vivi_default()
             self.robot.servo.morti_default()
             self.robot.motors.motors(40, 0)
-            time.sleep(0.7)
+            time.sleep(2)
 
 
     def loop_triangoli(self):
@@ -326,6 +326,36 @@ class EZ:
                 cv2.destroyAllWindows()
                 exit()
     
+    def trova_buco_uscita(self):
+        t_inizio = time.time()
+        self.robot.motors.motors(40, -40)
+        self.robot.servo.cam_linea()
+        time.sleep(0.3)
+        while time.time() - t_inizio < 3.5:
+            tof_front = self.robot.get_tof_mesures()[2]
+            print("front_tof", tof_front)
+            if tof_front > 700:
+                print("buso")
+                self.robot.motors.motors(0, 0)
+                return True        
+        self.robot.servo.cam_EZ()
+        return False
+    
+    def controllo_tipo_uscita(self):
+        t_inizio = time.time()
+        self.robot.motors.motors(20, 20)
+        self.robot.servo.cam_linea()
+        time.sleep(0.3)
+        while time.time() - t_inizio < 3.5:
+            frame = self.robot.get_frame().copy()
+            nero = scan_nero(frame)
+            cv2.imshow('nero_uscita', nero)
+            key = cv2.waitKey(1) & 0xFF
+            
+        self.robot.servo.cam_EZ()
+        self.robot.motors.motors(-70, -20)
+        time.sleep(1)
+        
     def loop_uscita(self):
         while True:
             frame = self.robot.get_frame().copy()
@@ -334,23 +364,9 @@ class EZ:
             
             tof_dx = self.robot.get_tof_mesures()[1]
             print("tof_dx", tof_dx)
-            if tof_dx > 600:
-                t_inizio = time.time()
-                self.robot.motors.motors(40, -40)
-                self.robot.servo.cam_linea()
-                time.sleep(0.3)
-                while time.time() - t_inizio < 3.5:
-                    tof_front = self.robot.get_tof_mesures()[2]
-                    print("front_tof", tof_front)
-                    if tof_front > 1000:
-                        print("buso")
-                        self.robot.motors.motors(0, 0)
-                        time.sleep(2)
-                self.robot.servo.cam_EZ()
-                    
-                        
-                            
-                
+            if tof_dx > 750:
+                if self.trova_buco_uscita():
+                    self.controllo_tipo_uscita()
             
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):

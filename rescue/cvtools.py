@@ -480,7 +480,6 @@ def scan_bordi(img):
     bordi = cv2.bitwise_not(bordi)
     
     bordo = get_bigger_component(bordi)
-    cv2.imshow("bordi", bordo)
     return bordo
 
 def sort_aree(amount, labels, coordinata, _blank='linea'):
