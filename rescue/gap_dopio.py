@@ -130,7 +130,7 @@ def trova_linea(robot):
         
         if rosso_count > 5:
             robot.motors.motors(0,0)
-            time.sleep(6)
+            # time.sleep(6)
             
         centro_linea, angle = get_centro_linea(robot, frame)
         
@@ -203,7 +203,7 @@ def gap(robot):
         
         if rosso_count > 5:
             robot.motors.motors(0,0)
-            time.sleep(6)
+            # time.sleep(6)
             
         """ QUIT GAP """
         if not is_gap(robot, frame):

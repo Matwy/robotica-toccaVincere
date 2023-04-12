@@ -14,7 +14,7 @@ class Robot():
         time.sleep(0.5)
         self.motors = Motors()
         self.cavo_sinistra = Button(4)
-        self.cavo_destra = Button(14)
+        self.cavo_destra = Button(12)
         self.last_punto_alto = (136//2, 0)
         self.last_punto_basso = (136//2, 137)
             
@@ -27,7 +27,7 @@ class Robot():
         return (self.cam_stream.LARGHEZZA, self.cam_stream.ALTEZZA)
     
     def is_salita(self):
-        print(get_inclinazione())
+        print("inclinamelo ", get_inclinazione())
         return get_inclinazione() > 6
     
     def camstream_EZ(self):

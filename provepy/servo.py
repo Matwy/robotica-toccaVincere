@@ -47,3 +47,6 @@ class Servo:
 
     def pinza_giu(self):
         self.set_pinza_angle(0)
+
+servo = Servo()
+servo.pinza_su()

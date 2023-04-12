@@ -51,6 +51,6 @@ def get_inclinazione():
     beschleunigung_yout_skaliert = beschleunigung_yout / 16384.0
     beschleunigung_zout_skaliert = beschleunigung_zout / 16384.0
 
-    return get_y_rotation(beschleunigung_xout_skaliert, beschleunigung_yout_skaliert, beschleunigung_zout_skaliert)
+    return get_x_rotation(beschleunigung_xout_skaliert, beschleunigung_yout_skaliert, beschleunigung_zout_skaliert)
 
 print(get_inclinazione())

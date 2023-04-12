@@ -87,7 +87,7 @@ def rescue(robot):
         
         if rosso_count > 5:
             robot.motors.motors(0,0)
-            time.sleep(6)
+            # time.sleep(6)
         
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
@@ -101,6 +101,9 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
+    # robot.servo.cam_linea()
+    # robot.servo.pinza_su()
+    # robot.motors.motors(50, 100)
     # ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()

@@ -3,12 +3,12 @@ import numpy as np
 
 from global_var import ALTEZZA, LARGHEZZA
 
-SENSITIVITY = 175
+SENSITIVITY = 190
 
 lower_white = 255-SENSITIVITY
 # lower_green = np.array([5,0,0]) LAb
 # upper_green = np.array([135,100,255])
-lower_green = np.array([40,66,55]) 
+lower_green = np.array([10,20,55]) 
 upper_green = np.array([90,255,121])
 
 lower_green_EZ = np.array([30,120,40]) 

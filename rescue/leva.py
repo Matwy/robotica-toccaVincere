@@ -7,7 +7,7 @@ import busio
 from board import SCL, SDA
 from adafruit_bus_device import i2c_device
 
-leva = Button(12)
+leva = Button(14)
 pid = None
 run = 0
 

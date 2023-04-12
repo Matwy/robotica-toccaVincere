@@ -14,26 +14,27 @@ cv2.namedWindow('puzzo')
 cv2.createTrackbar('ERODE', 'image', 0, 10, nothing)
 cv2.createTrackbar('DILATE', 'image', 0, 10, nothing)
 
-cv2.setTrackbarPos('ERODE', 'image', 10)
-cv2.setTrackbarPos('DILATE', 'image', 10)
+cv2.setTrackbarPos('ERODE', 'image', 5)
+cv2.setTrackbarPos('DILATE', 'image', 1)
 
 cv2.createTrackbar('LOW_H', 'image', 0, 179, nothing)
 cv2.createTrackbar('LOW_S', 'image', 0, 255, nothing)
 cv2.createTrackbar('LOW_V', 'image', 0, 255, nothing)
 
 cv2.setTrackbarPos('LOW_H', 'image', 40)
-cv2.setTrackbarPos('LOW_S', 'image', 130)
-cv2.setTrackbarPos('LOW_V', 'image', 90)
+cv2.setTrackbarPos('LOW_S', 'image', 66)
+cv2.setTrackbarPos('LOW_V', 'image', 55)
 
 cv2.createTrackbar('HIGH_H', 'image', 0, 179, nothing)
 cv2.createTrackbar('HIGH_S', 'image', 0, 255, nothing)
 cv2.createTrackbar('HIGH_V', 'image', 0, 255, nothing)
 
-cv2.setTrackbarPos('HIGH_H', 'image', 70)
-cv2.setTrackbarPos('HIGH_S', 'image', 175)
-cv2.setTrackbarPos('HIGH_V', 'image', 160)
+cv2.setTrackbarPos('HIGH_H', 'image', 90)
+cv2.setTrackbarPos('HIGH_S', 'image', 255)
+cv2.setTrackbarPos('HIGH_V', 'image', 121)
 
 cv2.createTrackbar('LOW_WHITE', 'image', 0, 255, nothing)
+cv2.setTrackbarPos('LOW_WHITE', 'image', 200)
 cam_stream = PiVideoStream().start()
 sleep(0.5)
 

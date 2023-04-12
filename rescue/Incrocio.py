@@ -4,6 +4,10 @@ from global_var import ALTEZZA, LARGHEZZA
 from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi, get_n_aree_biance, get_nearest_countourn_point
 from gap_dopio import doppio_verde
 import time
+from tflite_support.task import core
+from tflite_support.task import processor
+from tflite_support.task import vision
+
 BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')
 
@@ -40,12 +44,34 @@ class Incrocio:
         # no incrocio 
         return None
 
+
+    MODELLO_VERDE = 'giugia_leccami_lo_speck.tflite' # le mie non le vittime
+
     def __init__(self, robot):
         self.robot = robot
         self.centro = None
         self.is_centered = False
         self.end_point = None
+
+        # Initialize the object detection model
+        base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
+        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.45)
+        options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
+        self.detector_verdi = vision.ObjectDetector.create_from_options(options)
     
+    def get_verdi_with_tensor(self, frame):
+        # detect ball with tensor
+        rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        input_tensor = vision.TensorImage.create_from_array(rgb_image)
+        detection_result = self.detector_verdi.detect(input_tensor)
+        # add to array and draw ball on the frame
+        verdi = []
+        for d in detection_result.detections:
+            x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
+            verdi.append((x,y,w,h, index))
+            cv2.rectangle(self.output, (x,y), (x+w, y+h), (0,255,0), -1)
+
+        return verdi
     def calcolo_fine_incrocio(self, mask_nero, amount_bianco, labels_bianco, mask_verde):
         # PUNTO BASSO
         puntoL, puntoR = calcola_inizio_linea(mask_nero, amount_bianco, labels_bianco)
@@ -88,7 +114,8 @@ class Incrocio:
             self.robot.motors.motors(-abs(Py) + Px, -abs(Py) - Px) 
         
         if abs(errore_x) < OFFSET_TARGET_INCROCIO and abs(errore_y) < OFFSET_TARGET_INCROCIO:
-            self.is_centered = True
+            # self.is_centered = True
+            pass
         
     def loop_centra_incrocio(self):
         incrocio_perso = 0
@@ -121,6 +148,7 @@ class Incrocio:
                 # Centra incrocio se non è centrato e l'incrocio è alto
                 print('[INCROCIO] CENTRA INCROCIO')
                 self.centra_incrocio()
+                self.get_verdi_with_tensor(frame)
                 
             elif self.end_point is not None:
                 #    FASE 3    #
