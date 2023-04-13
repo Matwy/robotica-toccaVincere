@@ -4,7 +4,7 @@ import time
 from cvtools import get_punto_alto, getAngle, scan, get_bigger_area, calcola_inizio_linea, get_n_aree_biance, get_nearest_area_from_2points
 #incroci
 from Incrocio import Incrocio
-from cvtools import get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
+from cvtools import get_punto_basso, get_centro_incrocio, get_points_verdi, get_collisioni_with_angles,get_collisione_90, rimuovi_collisioni, taglio_verde_singolo
 #gap e doppioverde
 from gap_dopio import doppio_verde, gap
 from global_var import ALTEZZA, LARGHEZZA
@@ -47,14 +47,17 @@ def linea(frame, robot):
     #se c'è solo un'area bianca c'è un gap 
     if amount_bianco < 3:
         gap(robot)
-        return 0, 0, 0
+        return 0, 0, 0, 0, (0,0)
     #trovo l'inizio della linea 
+    # punto_basso = get_punto_basso(mask_nearest_area, robot.last_punto_basso)
+    cv2.circle(output, robot.last_punto_basso, 20, (0, 50, 200), 2)
+    # if punto_basso is None:
     puntoL, puntoR = calcola_inizio_linea(mask_nearest_area, amount_bianco, labels_bianco)
     punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
     robot.last_punto_basso = punto_basso
     #mostro i punti
-    cv2.circle(output, puntoL, 10, (255, 0, 0), -1)
-    cv2.circle(output, puntoR, 10, (0, 0, 255), -1)
+    # cv2.circle(output, puntoL, 10, (255, 0, 0), -1)
+    # cv2.circle(output, puntoR, 10, (0, 0, 255), -1)
     
     #se ci sono più di due aree bianche allora 
     # c'è un incrocio scegli la strada cancellando il resto
@@ -71,19 +74,31 @@ def linea(frame, robot):
     punto_alto = get_punto_alto(mask_nearest_area, robot.last_punto_alto)
     robot.last_punto_alto = punto_alto
     cv2.circle(output, punto_alto, 20, (230,230,50), 2)
-
+    x_tot, y_tot = (punto_basso[0]+punto_alto[0])//2, (punto_basso[1]+punto_alto[1])//2 
     #trova errore angolo
     errore_angolo = getAngle(punto_basso, (0, ALTEZZA), punto_alto) #angolo tra l'angolo in basso sx il punto basso della linea e la parte alta della linea
     errore_angolo = errore_angolo - 90 # 90 è il target value
     
     #trova errore linea
     # errore linea tenendo in considerazione ancheil punto alto errore_linea = ((punto_basso[0]+punto_alto[0])//2) - LARGHEZZA//2
-    errore_linea = punto_basso[0] - (LARGHEZZA//2)
+    errore_basso_x = punto_basso[0] - (LARGHEZZA//2)
+    errore_basso_y = ALTEZZA - punto_basso[1]
     
     #ritorno (errore linea, errore angolo)
     errore_alto_x = punto_alto[0] - (LARGHEZZA//2)
-    errore_alto_y = (ALTEZZA//2) - punto_alto[1]
-    errori = (errore_linea, errore_alto_x, errore_alto_y)
+    errore_alto_y = punto_alto[1]
+    
+    M = cv2.moments(mask_nearest_area)
+    if M["m00"] != 0:
+        x_tot = int(M["m10"] / M["m00"])
+        y_tot = int(M["m01"] / M["m00"]) 
+        
+    errore_tot_x = x_tot - (LARGHEZZA//2)
+    errore_tot_y = (ALTEZZA//2) - y_tot
+    
+       
+
+    errori = (errore_basso_x, errore_basso_y, errore_alto_x, errore_alto_y, (errore_tot_x, errore_tot_y))
     cv2.imshow('output', output)
 
     return errori

@@ -203,7 +203,7 @@ def confronta_last(amount, labels, collisione, x_last, y_last):
     #quella simile verrà scelta
     
     # (punto, distanza) 1000 non verrà scelto perchè grande
-    punto_alto = ((0,0), 1000)
+    punto_vicino = ((0,0), 1000)
     for i in range(1, amount):
         collisione = BLANK.copy()
         collisione[labels == i] = 255
@@ -212,21 +212,30 @@ def confronta_last(amount, labels, collisione, x_last, y_last):
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"]) 
             distanza = ((x_last - cX)**2 + (y_last - cY)**2)**0.5
-            if distanza < punto_alto[1]:
-                punto_alto = ((cX, cY), distanza)
+            if distanza < punto_vicino[1]:
+                punto_vicino = ((cX, cY), distanza)
     
-    return punto_alto[0]
+    return punto_vicino[0]
+
+def get_punto_basso(mask, last_punto_basso):
+    collisione = np.logical_and(mask, MASK_BORDI)#and tra i bordi e la linea
+    collisione = np.uint8(collisione)*255 #per riconvertire in immagine
+    
+    amount, labels = cv2.connectedComponents(collisione)
+    if amount < 2 : return None
+    return confronta_last(amount, labels, collisione, last_punto_basso[0], last_punto_basso[1])
 
 def get_punto_alto(mask, last_punto_alto):
     collisione = np.logical_and(mask, MASK_BORDI)#and tra i bordi e la linea
     collisione = np.uint8(collisione)*255 #per riconvertire in immagine
-    
+    cv2.imshow("collisioni", collisione)
     amount, labels = cv2.connectedComponents(collisione)
     if amount > 2:
         #caso in cui le intersezioni sono due o più quindi viene scelta la più alta
         return confronta_last(amount, labels, collisione, last_punto_alto[0], last_punto_alto[1])
 
     if amount == 2:
+        print("non ha senso questa cosa spero che non venga mai stampato in console questo messaggio")
         #c'è solo un'intersezione quindi trovane il centro
         M = cv2.moments(collisione)
         if M["m00"] != 0:

@@ -28,19 +28,21 @@ def rescue(robot):
         LINEA
         """
         frame = robot.get_frame().copy()
-        errore_linea, errore_alto_x, errore_alto_y = linea(frame, robot)
-        
+        errore_basso_x, errore_basso_y, errore_alto_x, errore_alto_y, errore_tot = linea(frame, robot)
         speed = 40
-        kp, ki, kd = 2, 1, 2
+        k_basso_x, k_basso_y, k_alto_x, k_alto_y = 0.1, 0, 0.25, 0.1 #1 0.3
         
-        P, altoX, altoY= int(errore_linea*kp), int(errore_alto_x*kd), int(errore_alto_y*kd)
-        # print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
+        basso_x, basso_y, altoX, altoY= int(errore_basso_x*k_basso_x), int(errore_basso_y*k_basso_y), int(errore_alto_x*k_alto_x), int(errore_alto_y*k_alto_y)
+        print("[LINEA]", "basso = ",basso_x, basso_y, (basso_x-basso_y), "   alto =", (altoX+altoY), "   time =", time.time())
         # if altoY > 0:
         # errore_alto = abs(altoY) + altoX, abs(altoY) - altoX                
         # else:
             # errore_alto = -abs(altoY) + altoX, -abs(altoY) - altoX
+        # if basso_y != 0:
+            # robot.motors.motors(speed + (altoX*altoY), speed - (altoX*altoY))
+        # else:
+        robot.motors.motors(speed + ((basso_x)+(altoX*altoY)), speed - ((basso_x)+(altoX*altoY)))
         
-        robot.motors.motors(speed + (P+altoX), speed - (P+altoX))
         """
         OSTACOLO
         """
@@ -108,7 +110,7 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    robot.servo.cam_cubo()
+    # robot.servo.cam_cubo()
     # while True:
         # print(robot.get_gyro_value())
     # robot.servo.cam_linea()
