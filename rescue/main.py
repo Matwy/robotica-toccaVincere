@@ -28,13 +28,19 @@ def rescue(robot):
         LINEA
         """
         frame = robot.get_frame().copy()
-        errore_linea, errore_angolo = linea(frame, robot)
+        errore_linea, errore_alto_x, errore_alto_y = linea(frame, robot)
         
         speed = 40
-        kp, ki, kd = 2.3, 1, 2.2
-        P, I, D= int(errore_linea*kp), 0, int(errore_angolo*kd)
-        robot.motors.motors(speed + (P+D), speed - (P+D))
+        kp, ki, kd = 2, 1, 2
+        
+        P, altoX, altoY= int(errore_linea*kp), int(errore_alto_x*kd), int(errore_alto_y*kd)
         # print("[LINEA]", "P = ", P, "   D =", D, "   time =", time.time())
+        # if altoY > 0:
+        # errore_alto = abs(altoY) + altoX, abs(altoY) - altoX                
+        # else:
+            # errore_alto = -abs(altoY) + altoX, -abs(altoY) - altoX
+        
+        robot.motors.motors(speed + (P+altoX), speed - (P+altoX))
         """
         OSTACOLO
         """
@@ -102,7 +108,11 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
+    robot.servo.cam_cubo()
+    # while True:
+        # print(robot.get_gyro_value())
     # robot.servo.cam_linea()
+    # robot.servo.pinza_giu()
     # robot.servo.pinza_su()
     # robot.motors.motors(50, 100)
     # ez = EZ(robot)

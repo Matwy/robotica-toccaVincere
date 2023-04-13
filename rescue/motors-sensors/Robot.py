@@ -5,12 +5,13 @@ import PiVideoStream
 from Motors import Motors
 from multiTof import sensors_stream
 from servo import Servo
-from gyro import get_inclinazione
+from gyro import Gyro
 class Robot():
     def __init__(self):
         self.servo = Servo()
         self.cam_stream = PiVideoStreamUndistorted.PiVideoStream().start()
         self.sensors_stream = sensors_stream().start()
+        self.gyro = Gyro()
         time.sleep(0.5)
         self.motors = Motors()
         self.cavo_sinistra = Button(4)
@@ -26,9 +27,12 @@ class Robot():
     def get_resolution(self):
         return (self.cam_stream.LARGHEZZA, self.cam_stream.ALTEZZA)
     
+    def get_gyro_value(self):
+        return self.gyro.read()
+    
     def is_salita(self):
-        print("inclinamelo ", get_inclinazione())
-        return get_inclinazione() > 6
+        # print("inclinamelo ", get_inclinazione())
+        return self.get_gyro_value() > 6
     
     def camstream_EZ(self):
         self.cam_stream.stop()

@@ -4,13 +4,15 @@ import time
 from global_var import ALTEZZA, LARGHEZZA
 
 lower_blue = np.array([90,70,70])
-upper_blue = np.array([130,255,230])
+upper_blue = np.array([150,255,230])
+upper_blue_cam_cubo = np.array([150,255,230])
 
 kernel = np.ones((9,9), np.uint8)
 
-def detect_blu(frame):
+def detect_blu(frame, cam_cubo = False):
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-    blu = cv2.inRange(hsv, lower_blue, upper_blue)
+    up_blue = upper_blue_cam_cubo if cam_cubo else upper_blue
+    blu = cv2.inRange(hsv, lower_blue, up_blue)
     blu = cv2.erode(blu,kernel,iterations=1)
     blu = cv2.dilate(blu,kernel,iterations=2)
     key = cv2.waitKey(1) & 0xFF
@@ -39,29 +41,36 @@ def raggiungi_cubo(robot):
     while True:
         frame = robot.get_frame()
         cubo = detect_blu(frame)
-        robot.motors.motors(30, 30)
+        robot.motors.motors(40, 40)
         
         if time.time() - t_inizio > 5:
             robot.servo.pinza_su()
-            robot.motors.motors(-30, -30)
+            robot.motors.motors(-40, -40)
             time.sleep(time.time() - t_inizio)
             robot.servo.cam_linea()
             break 
 
         if cubo == None: continue
         print("[CUBOBLU] cubo_y", cubo[1])
-        if cubo[1] > 65:
+        if cubo[1] > 60:
+            print("[CUBO] raccogli")
+            time.sleep(0.5)
             t_fine = time.time()
             robot.motors.motors(0, 0)
             robot.servo.becco_chiuso()
             time.sleep(0.3)
+            print("[CUBO] indrio")
             robot.servo.pinza_su_max()
-            time.sleep(1)
+            time.sleep(0.5)
             robot.servo.becco_molla_vivi()
 
-            robot.motors.motors(-30, -30)
-            time.sleep(t_fine - t_inizio)
+            durata = t_fine- t_inizio
+            print(durata)
+            robot.motors.motors(-40, -40)
+            time.sleep(durata)
             robot.servo.cam_linea()
+            robot.motors.motors(0, 0)
+            print("[CUBO] fine indrio")
             break        
         
         cv2.circle(frame, cubo, 20, (230,230,50), 2)
