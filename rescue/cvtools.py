@@ -349,14 +349,7 @@ def get_collisione_90(collisioni_angoli, punto_basso):
     
     return collisione
 
-def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
-    #punti dei centri di ogni quadrato verde
-    amount, labels = cv2.connectedComponents(mask_verde)
-    punti_verdi = get_centri_aree(amount, labels)
-    #trovo la retta 'perpendicolare' dell'incrocio 
-    # m = (centro_incrocio[1]-collisione_angolo_piccolo[1])/(centro_incrocio[0]-collisione_angolo_piccolo[0])
-    # q = centro_incrocio[1] - (m*centro_incrocio[0])
-
+def get_valid_verdi(punti_verdi, centro_incrocio, collisione_angolo_piccolo):
     # distanza_
     if centro_incrocio[0] < collisione_angolo_piccolo[0]:
         x1, y1 = centro_incrocio
@@ -390,7 +383,16 @@ def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
         if not(is_left1 ^ is_left2):
             verdi_vicini_incrocio = []
     
-    return verdi_vicini_incrocio
+    return verdi_vicini_incrocio    
+
+def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
+    #punti dei centri di ogni quadrato verde
+    amount, labels = cv2.connectedComponents(mask_verde)
+    punti_verdi = get_centri_aree(amount, labels)
+    #trovo la retta 'perpendicolare' dell'incrocio 
+    # m = (centro_incrocio[1]-collisione_angolo_piccolo[1])/(centro_incrocio[0]-collisione_angolo_piccolo[0])
+    # q = centro_incrocio[1] - (m*centro_incrocio[0])
+    return get_valid_verdi(punti_verdi, centro_incrocio, collisione_angolo_piccolo)
 
 
 def get_punti_cut_verde_singolo(centrolinea, verde):

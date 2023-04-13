@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from global_var import ALTEZZA, LARGHEZZA
-from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_points_verdi, get_n_aree_biance, get_nearest_countourn_point
+from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_valid_verdi, get_n_aree_biance, get_nearest_countourn_point
 from gap_dopio import doppio_verde
 import time
 from tflite_support.task import core
@@ -55,7 +55,7 @@ class Incrocio:
 
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
-        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.45)
+        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.35)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_verdi = vision.ObjectDetector.create_from_options(options)
     
@@ -68,11 +68,13 @@ class Incrocio:
         verdi = []
         for d in detection_result.detections:
             x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
-            verdi.append((x,y,w,h, index))
+            verdi.append((x+(w//2),y+(h//2)))
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (0,255,0), -1)
+            cv2.circle(self.output, (x+(w//2),y+(h//2)), 4, (70,10, 200), 2)
 
         return verdi
-    def calcolo_fine_incrocio(self, mask_nero, amount_bianco, labels_bianco, mask_verde):
+    
+    def calcolo_fine_incrocio(self, mask_nero, amount_bianco, labels_bianco, raw_verdi):
         # PUNTO BASSO
         puntoL, puntoR = calcola_inizio_linea(mask_nero, amount_bianco, labels_bianco)
         punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
@@ -83,7 +85,7 @@ class Incrocio:
         collisione_meno_ampia = collisioni_bordo[0][1]
         cv2.circle(self.output, collisione_meno_ampia, 10, (30,200, 50), 2)
         # VERDE
-        verdi = get_points_verdi(mask_verde, self.centro, collisione_meno_ampia)
+        verdi = get_valid_verdi(raw_verdi, self.centro, collisione_meno_ampia)
         for v in verdi:
             cv2.circle(self.output, v, 5, (200,50, 100), 2)
         
@@ -114,7 +116,7 @@ class Incrocio:
             self.robot.motors.motors(-abs(Py) + Px, -abs(Py) - Px) 
         
         if abs(errore_x) < OFFSET_TARGET_INCROCIO and abs(errore_y) < OFFSET_TARGET_INCROCIO:
-            # self.is_centered = True
+            self.is_centered = True
             pass
         
     def loop_centra_incrocio(self):
@@ -148,7 +150,6 @@ class Incrocio:
                 # Centra incrocio se non è centrato e l'incrocio è alto
                 print('[INCROCIO] CENTRA INCROCIO')
                 self.centra_incrocio()
-                self.get_verdi_with_tensor(frame)
                 
             elif self.end_point is not None:
                 #    FASE 3    #
@@ -170,7 +171,8 @@ class Incrocio:
                 # calcolo l'end_point
                 self.robot.motors.motors(0,0)
                 self.robot.servo.pinza_su()
-                self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, mask_verde)
+                raw_verdi = self.get_verdi_with_tensor(frame)
+                self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, raw_verdi)
                 print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
                 
 

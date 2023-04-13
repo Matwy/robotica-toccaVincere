@@ -44,7 +44,7 @@ class PiVideoStream:
             x += 15
             w -= 40
 
-            dst = dst[y:y+h, x:x+w]
+            dst = dst[y:y+h-15, x:x+w]
             self.frame = dst
             self.rawCapture.truncate(0)
             # if the thread indicator variable is set, stop the thread

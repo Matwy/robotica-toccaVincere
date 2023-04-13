@@ -87,6 +87,7 @@ def rescue(robot):
         
         if rosso_count > 5:
             robot.motors.motors(0,0)
+            print("[ROSSO] rosso")
             # time.sleep(6)
         
         cv2.imshow("frame", frame)
@@ -108,5 +109,7 @@ if __name__ == '__main__':
     # ez.loop_palle()
     # ez.loop_triangoli()
     # ez.loop_uscita()
+    # while True:
+    #     print(robot.get_tof_mesures())
     print("[MAIN] rescue()")
     rescue(robot)
