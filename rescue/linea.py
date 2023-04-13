@@ -47,7 +47,7 @@ def linea(frame, robot):
     #se c'è solo un'area bianca c'è un gap 
     if amount_bianco < 3:
         gap(robot)
-        return 0, 0
+        return 0, 0, 0
     #trovo l'inizio della linea 
     puntoL, puntoR = calcola_inizio_linea(mask_nearest_area, amount_bianco, labels_bianco)
     punto_basso = ((puntoL[0] + puntoR[0]) // 2), ((puntoL[1] + puntoR[1]) // 2)
@@ -81,7 +81,9 @@ def linea(frame, robot):
     errore_linea = punto_basso[0] - (LARGHEZZA//2)
     
     #ritorno (errore linea, errore angolo)
-    errori = (errore_linea, errore_angolo)
+    errore_alto_x = punto_alto[0] - (LARGHEZZA//2)
+    errore_alto_y = (ALTEZZA//2) - punto_alto[1]
+    errori = (errore_linea, errore_alto_x, errore_alto_y)
     cv2.imshow('output', output)
 
     return errori

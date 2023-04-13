@@ -18,7 +18,7 @@ class Servo:
         self.becco_dx = servo.Servo(self.pca.channels[8])
         self.cam = servo.Servo(self.pca.channels[4])
         self.morti = servo.Servo(self.pca.channels[7], max_pulse=2320)
-        self.vivi = servo.Servo(self.pca.channels[6])
+        self.vivi = servo.Servo(self.pca.channels[6], min_pulse=770)
     
     def deinit_pca(self):
         self.pca.reset()
