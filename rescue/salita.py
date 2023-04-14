@@ -1,8 +1,15 @@
 import cv2
+import numpy as np
 from cvtools import scan, get_bigger_area
 from global_var import ALTEZZA, LARGHEZZA
 import time
 from Incrocio import Incrocio
+from gap_dopio import get_centro_linea
+
+MASK_BORDI_SALITA_NOISE = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
+cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 20), (LARGHEZZA-20, ALTEZZA), (255), -1)
+MASK_BORDI_SALITA_NOISE = cv2.bitwise_not(MASK_BORDI_SALITA_NOISE)
+
 def salita(robot):
     robot.motors.motors(-60, -60)
     robot.servo.pinza_salita()
@@ -26,25 +33,23 @@ def salita(robot):
             incrocio_count = 0
             
         if incrocio_count > 5:
-            robot.is_salita()
             Incrocio(robot).loop_centra_incrocio()
             robot.servo.pinza_su()
             break
-        #trovo la linea nera e calcolo l'errore
-        cut = mask[-40:-10, :]
-        M = cv2.moments(cut)
-        if M["m00"] != 0:
-            x = int(M["m10"] / M["m00"])
-        else:
-            x = 0
-
-        robot.last_punto_alto, robot.last_punto_basso = (x, ALTEZZA-30), (x, ALTEZZA-30)
-        cv2.circle(frame, (x, ALTEZZA-10), 20, (230,230,50), 2)
         
-        sp = 30
-        kp = 1
-        errore = int((x*kp) - (LARGHEZZA//2))
-        robot.motors.motors(sp + errore, sp - errore)
+        #tolgo 20px left top e right dall'immagine per il noise
+        frame[MASK_BORDI_SALITA_NOISE == 255] = 255
+        #calcola il centro della linea sotto e l'angolo
+        x_linea, angle = get_centro_linea(robot, frame)
+        if x_linea is None or angle is None:
+            robot.motors.motors(30,30)
+            continue
+
+        # centro il robot 
+        sp, kp, kd = 30, 1.5, 2
+        errore_linea = x_linea - (LARGHEZZA//2)
+        P, D= int(errore_linea*kp), int(angle*kd)
+        robot.motors.motors(sp + (P+D), sp - (P+D))
         
         if not robot.is_salita():
             piano_count += 1
@@ -59,7 +64,6 @@ def salita(robot):
             break
 
         cv2.imshow("frame", frame)
-        cv2.imshow("salita mask", cut)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             robot.motors.motors(0, 0)

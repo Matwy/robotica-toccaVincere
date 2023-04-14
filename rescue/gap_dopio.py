@@ -1,8 +1,15 @@
 import cv2
+import numpy as np
 from cvtools import scan, get_bigger_area, scan_nero, sort_aree, get_nearest_area_from_2points, isRosso
 import time
 from global_var import ALTEZZA, LARGHEZZA
 from ez import EZ
+
+salita = False
+MASK_BORDI_SALITA_NOISE = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
+cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 20), (LARGHEZZA-20, ALTEZZA), (255), -1)
+MASK_BORDI_SALITA_NOISE = cv2.bitwise_not(MASK_BORDI_SALITA_NOISE)
+
 def get_x_bottom_line(frame):
     mask_nero, _, mask_verde = scan(frame)
     cut = mask_nero[-50:, :]
@@ -82,6 +89,8 @@ def is_gap(robot, frame):
     return True
     
 def get_centro_linea(robot, frame):
+    if salita:
+        frame[MASK_BORDI_SALITA_NOISE == 255] = 255
     mask_nero = scan_nero(frame)
     mask_bigger_nero = get_nearest_area_from_2points(mask_nero, robot.last_punto_alto, robot.last_punto_basso)
     _, cnts, _ = cv2.findContours(mask_bigger_nero.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -182,6 +191,7 @@ def trova_linea(robot):
             exit()    
 
 def gap(robot):
+    global salita
     cv2.destroyAllWindows()
     quit_gap_counter = 0
     no_linea_counter = 0
@@ -204,6 +214,7 @@ def gap(robot):
             
         if salita_count > 5:
             robot.servo.pinza_salita()
+            salita = True
         
         
         frame = robot.get_frame().copy().copy()
@@ -221,9 +232,11 @@ def gap(robot):
         """ QUIT GAP """
         if not is_gap(robot, frame):
             quit_gap_counter += 1
-            if quit_gap_counter > 2:
+            if quit_gap_counter > 2 and not robot.is_salita():
                 robot.servo.cam_linea()
                 cv2.destroyAllWindows()
+                salita = False
+                robot.servo.pinza_su()
                 break
         else:
             quit_gap_counter = 0
