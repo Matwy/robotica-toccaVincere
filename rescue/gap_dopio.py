@@ -186,6 +186,7 @@ def gap(robot):
     quit_gap_counter = 0
     no_linea_counter = 0
     rosso_count = 0
+    salita_count = 0
     while True:
         if robot.check_ez():
             ez = EZ(robot)
@@ -193,6 +194,18 @@ def gap(robot):
             ez.loop_triangoli()
             ez.loop_uscita()
 
+        """
+        SALITA
+        """
+        if robot.is_salita():
+            salita_count += 1
+        else:
+            salita_count = 0
+            
+        if salita_count > 5:
+            robot.servo.pinza_salita()
+        
+        
         frame = robot.get_frame().copy().copy()
 
         """"CHECK ROSO"""

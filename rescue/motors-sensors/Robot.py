@@ -14,8 +14,8 @@ class Robot():
         self.gyro = Gyro()
         time.sleep(0.5)
         self.motors = Motors()
-        self.cavo_sinistra = Button(4)
-        self.cavo_destra = Button(12)
+        self.cavo_sinistra = Button(13)
+        self.cavo_destra = Button(19)
         self.last_punto_alto = (136//2, 0)
         self.last_punto_basso = (136//2, 137)
             
