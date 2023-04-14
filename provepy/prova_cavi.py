@@ -1,12 +1,12 @@
 from gpiozero import Button
 
-destra = Button(12)
-sinistra = Button(4)
+destra = Button(19)
+sinistra = Button(13)
 switch = Button(14)
 while True:
     print("switch",switch.is_pressed)
     print("sinistra",sinistra.is_pressed)
     print("destra",destra.is_pressed)
-    print("\n\n\n")
+    print("")
     
         
