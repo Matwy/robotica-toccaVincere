@@ -55,7 +55,7 @@ class Incrocio:
 
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
-        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.35)
+        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.20)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_verdi = vision.ObjectDetector.create_from_options(options)
     
@@ -68,6 +68,8 @@ class Incrocio:
         verdi = []
         for d in detection_result.detections:
             x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
+            if w*h  > 2000:
+                continue
             verdi.append((x+(w//2),y+(h//2)))
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (0,255,0), -1)
             cv2.circle(self.output, (x+(w//2),y+(h//2)), 4, (70,10, 200), 2)
@@ -99,6 +101,9 @@ class Incrocio:
             end_point = collisioni_bordo[0][1]
             
         elif len(verdi) == 2:
+            print("[INCROCIO] DOPPIOVERDE verdi:", verdi, "centro: ", self.centro)
+            self.robot.motors.motors(0,0)
+            time.sleep(20)
             doppio_verde(self.robot)
             end_point = (LARGHEZZA//2, 0)
             
@@ -164,21 +169,25 @@ class Incrocio:
                 errore_end_point = self.end_point[0] - (LARGHEZZA//2)
                 errore_centro = self.centro[0] - (LARGHEZZA//2)
                         
-                P, D= int(errore_centro*0.4), int(errore_end_point*0.7)
-                self.robot.motors.motors(15 + (P+D), 15 - (P+D))
+                P, D= int(errore_centro*0.4), int(errore_end_point*1)
+                if P+D > 0:
+                    self.robot.motors.motors(30 + (P+D), 15 - (P+D))
+                else:
+                    self.robot.motors.motors(15 + (P+D), 30 - (P+D))
+                    
+                    
             else:
                 #    FASE 2    #
                 # faccio tre foto all'incrocio e per ognuna uso il modello di tensor
                 # rimuovo i verdi ripetuti e quelli troppo grandi
                 self.robot.motors.motors(0,0)
                 self.robot.servo.pinza_su()
-                for i in range(3):
-                    verdi = self.get_verdi_with_tensor(self.robot.get_frame().copy())
-                    print(i, verdi)
-                    raw_verdi += verdi
-                cv2.waitKey(1)
-                time.sleep(5)
-                verdi_not_repeated = remove_repeated_and_big_verdi(raw_verdi)
+                raw_verdi = self.get_verdi_with_tensor(self.robot.get_frame().copy())
+                
+                # cv2.imshow('output', self.output)
+                # cv2.waitKey(1)
+                # time.sleep(5)
+                # verdi_not_repeated = remove_repeated_and_big_verdi(raw_verdi)
                 self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, raw_verdi)
                 print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
                 

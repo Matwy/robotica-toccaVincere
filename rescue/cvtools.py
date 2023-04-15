@@ -384,15 +384,23 @@ def get_valid_verdi(punti_verdi, centro_incrocio, collisione_angolo_piccolo):
         d = distanza_punti(verde, centro_incrocio)
         if d < 50:
             verdi_vicini_incrocio.append(verde)
-    #se ci sono due verdi validi allora controllo che siano
-    #  uno a destra e l'altro a sinistra dell'incrocio
-    if len(verdi_vicini_incrocio) == 2:
-        is_left1 = verdi_vicini_incrocio[0][0] < centro_incrocio[0]
-        is_left2 = verdi_vicini_incrocio[1][0] < centro_incrocio[0]
-        if not(is_left1 ^ is_left2):
-            verdi_vicini_incrocio = []
     
-    return verdi_vicini_incrocio    
+    # controllo che ci sia un solo verde per lato (max uno sinistra max uno destra)
+    verdi_sinistra = []
+    verdi_destra = []
+    for verde in verdi_vicini_incrocio:
+        if verde[0] < centro_incrocio[0]:
+            verdi_sinistra.append(verde)
+        else:
+            verdi_destra.append(verde)
+    
+    verdi_finali = []
+    if len(verdi_destra) > 0:
+        verdi_finali.append(verdi_destra[0])
+    if len(verdi_sinistra) > 0:
+        verdi_finali.append(verdi_sinistra[0])
+    print(verdi_finali)
+    return verdi_finali
 
 def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
     #punti dei centri di ogni quadrato verde
