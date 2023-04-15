@@ -12,6 +12,7 @@ BLANK = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
 BLANK_COLORI = np.full((ALTEZZA, LARGHEZZA, 3), 255, dtype='uint8')
 
 OFFSET_TARGET_INCROCIO = 20
+TARGET_DOPPIOVERDE = ALTEZZA - 40
 
 class Incrocio:
     @staticmethod
@@ -53,6 +54,7 @@ class Incrocio:
         self.is_centered = False
         self.end_point = None
         self.uscita_counter = 0
+        self.doppioverde = False
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
         detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.20)
@@ -103,8 +105,7 @@ class Incrocio:
         elif len(verdi) == 2:
             print("[INCROCIO] DOPPIOVERDE verdi:", verdi, "centro: ", self.centro)
             self.robot.motors.motors(0,0)
-            time.sleep(20)
-            doppio_verde(self.robot)
+            self.doppioverde = True
             end_point = (LARGHEZZA//2, 0)
             
         cv2.circle(self.output, end_point, 10, (50,50, 255), 2)
@@ -156,6 +157,27 @@ class Incrocio:
             
             self.uscita_counter = 0
             self.centro = _centro
+            
+            if self.doppioverde:
+                sp, kp = 20, 4
+                errore = self.centro[0] - (LARGHEZZA//2)
+                self.robot.motors.motors(sp + int(errore*kp), sp - int(errore*kp))
+                if self.centro[1] > TARGET_DOPPIOVERDE:
+                    #  MANOVRA 180° #
+                    self.robot.motors.motors(40, 40)
+                    time.sleep(1)
+                    #gira di 180°
+                    self.robot.motors.motors(-70, 70)
+                    time.sleep(2.5)
+
+                    self.robot.motors.motors(-40, -40)
+                    time.sleep(0.5)
+                    cv2.destroyAllWindows()
+                
+                cv2.circle(self.output, self.centro, 15, (0,0,255), 2)
+                cv2.imshow('output', self.output)
+                key = cv2.waitKey(1) & 0xFF
+                continue
             
             if not self.is_centered and self.centro[1] < ALTEZZA - 30:
                 #    FASE 1    #

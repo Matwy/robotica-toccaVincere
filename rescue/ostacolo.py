@@ -16,6 +16,8 @@ def raggiungi_ostacolo(robot):
             ostacolo_perso_counter += 1
         else:
             ostacolo_perso_counter = 0
+        if ostacolo_perso_counter > 5:
+            return False
         
         # vicinanza ostacolo
         if front_tof_measure <= 40:
@@ -24,10 +26,13 @@ def raggiungi_ostacolo(robot):
             ostacolo_vicino_count = 0
         print("[OSTACOLO] front_tof:", front_tof_measure)
         robot.motors.motors(40, 40)
-        
+    return True
+
 def ostacolo(robot, _dir = 1):
     cv2.destroyAllWindows()
-    raggiungi_ostacolo(robot)
+    if not raggiungi_ostacolo(robot):
+        return
+    
     robot.motors.motors(60*_dir, -60*_dir)
     time.sleep(1.3)
     robot.motors.motors(0, 0)
