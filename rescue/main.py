@@ -56,7 +56,7 @@ def rescue(robot):
             ostacolo_count = 0
         
         if ostacolo_count > 4:
-            ostacolo(robot, 1)
+            ostacolo(robot, -1)
         """
         CUBOBBLU
         """

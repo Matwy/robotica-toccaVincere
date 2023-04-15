@@ -4,14 +4,34 @@ import time
 from cvtools import scan
 from global_var import ALTEZZA, LARGHEZZA
 
+def raggiungi_ostacolo(robot):
+    front_tof_measure = 130
+    ostacolo_perso_counter = 0
+    ostacolo_vicino_count = 0
+    print("diocan")
+    while ostacolo_vicino_count < 5:
+        front_tof_measure = robot.get_tof_mesures()[2]
+        # NO ostacolo/
+        if front_tof_measure > 130:
+            ostacolo_perso_counter += 1
+        else:
+            ostacolo_perso_counter = 0
+        
+        # vicinanza ostacolo
+        if front_tof_measure <= 40:
+            ostacolo_vicino_count += 1
+        else:
+            ostacolo_vicino_count = 0
+        print("[OSTACOLO] front_tof:", front_tof_measure)
+        robot.motors.motors(40, 40)
+        
 def ostacolo(robot, _dir = 1):
-    robot.motors.motors(0, 0)
     cv2.destroyAllWindows()
-
-    robot.motors.motors(30, 30)
-    time.sleep(0.3)
+    raggiungi_ostacolo(robot)
     robot.motors.motors(60*_dir, -60*_dir)
     time.sleep(1.3)
+    robot.motors.motors(0, 0)
+    time.sleep(2)
 
     t_inizio_ostacolo = time.time()
     side_tof_index = 0 if _dir == 1 else 1
@@ -21,26 +41,25 @@ def ostacolo(robot, _dir = 1):
         print("side_tof", side_tof)
         if side_tof < 200:
             if _dir == 1:
-                robot.motors.motors(-50, 80)
+                robot.motors.motors(-20, 80)
             else:
-                robot.motors.motors(80, -50)
+                robot.motors.motors(80, -20)
         else:
             if _dir == 1:
-                robot.motors.motors(30, 80)
+                robot.motors.motors(40, 80)
             else:
-                robot.motors.motors(80, 30)
+                robot.motors.motors(80, 40)
                 
         time.sleep(0.05)
 
         frame = robot.get_frame()
 
-        roiOffset = 25
-        roi = frame[roiOffset : ALTEZZA-roiOffset, roiOffset :  LARGHEZZA-roiOffset]
+        roi = frame[ALTEZZA-25 : ALTEZZA, 0 : LARGHEZZA//2]
         
         mask_nero, _, _ =  scan(roi)
         non_zeri = np.count_nonzero(mask_nero)
         print("ostacolo", non_zeri)
-        if time.time() - t_inizio_ostacolo > 1 and non_zeri > 2000:
+        if time.time() - t_inizio_ostacolo > 1 and non_zeri > 1000:
             robot.motors.motors(50, 50)
             time.sleep(1.7)
             robot.motors.motors(50*_dir, -50*_dir)
