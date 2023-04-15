@@ -168,10 +168,17 @@ class Incrocio:
                 self.robot.motors.motors(15 + (P+D), 15 - (P+D))
             else:
                 #    FASE 2    #
-                # calcolo l'end_point
+                # faccio tre foto all'incrocio e per ognuna uso il modello di tensor
+                # rimuovo i verdi ripetuti e quelli troppo grandi
                 self.robot.motors.motors(0,0)
                 self.robot.servo.pinza_su()
-                raw_verdi = self.get_verdi_with_tensor(frame)
+                for i in range(3):
+                    verdi = self.get_verdi_with_tensor(self.robot.get_frame().copy())
+                    print(i, verdi)
+                    raw_verdi += verdi
+                cv2.waitKey(1)
+                time.sleep(5)
+                verdi_not_repeated = remove_repeated_and_big_verdi(raw_verdi)
                 self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, raw_verdi)
                 print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
                 
