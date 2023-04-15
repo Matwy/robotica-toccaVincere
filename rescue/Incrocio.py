@@ -52,7 +52,7 @@ class Incrocio:
         self.centro = None
         self.is_centered = False
         self.end_point = None
-
+        self.uscita_counter = 0
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
         detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.20)
@@ -113,8 +113,8 @@ class Incrocio:
         # centra l'incrocio in modo proporzionale
         errore_x = self.centro[0] - (LARGHEZZA//2)
         errore_y = (ALTEZZA//2) - self.centro[1]
-        Px = int(errore_x*2)
-        Py = int(errore_y*1)
+        Px = int(errore_x*1.3)
+        Py = int(errore_y*0.7)
         if errore_y > 0:
             self.robot.motors.motors(abs(Py) + Px, abs(Py) - Px)                
         else:
@@ -125,7 +125,6 @@ class Incrocio:
             pass
         
     def loop_centra_incrocio(self):
-        incrocio_perso = 0
         while True:
             self.output = BLANK_COLORI.copy()
             frame = self.robot.get_frame().copy()
@@ -141,13 +140,21 @@ class Incrocio:
             _centro = Incrocio.get_incrocio(amount_bianco, labels_bianco)
             if self.centro is None: self.centro = _centro
             # controlli per uscire
+            
+            if self.uscita_counter > 5:
+                return
+            
             if _centro is None:
-                return
+                self.uscita_counter += 1
+                print('[INCROCIO] USCITA _centro None')
+                continue
             
-            if self.centro is None or n_aree_bianche_senza_loli <= 2 or np.linalg.norm(np.array(self.centro) - np.array(_centro)) > 50:
-                print('[INCROCIO] USCITA')
-                return
+            if self.centro is None or np.linalg.norm(np.array(self.centro) - np.array(_centro)) > 50:
+                self.uscita_counter += 1
+                print('[INCROCIO] USCITA', self.centro is None, n_aree_bianche_senza_loli <= 2, np.linalg.norm(np.array(self.centro) - np.array(_centro)))
+                continue
             
+            self.uscita_counter = 0
             self.centro = _centro
             
             if not self.is_centered and self.centro[1] < ALTEZZA - 30:
@@ -170,11 +177,7 @@ class Incrocio:
                 errore_centro = self.centro[0] - (LARGHEZZA//2)
                         
                 P, D= int(errore_centro*0.4), int(errore_end_point*1)
-                if P+D > 0:
-                    self.robot.motors.motors(30 + (P+D), 15 - (P+D))
-                else:
-                    self.robot.motors.motors(15 + (P+D), 30 - (P+D))
-                    
+                self.robot.motors.motors(20 + (P+D), 20 - (P+D))                    
                     
             else:
                 #    FASE 2    #
