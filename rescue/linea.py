@@ -79,6 +79,9 @@ def linea(frame, robot):
     punto_alto = get_punto_alto(mask_nearest_area, robot.last_punto_alto)
     robot.last_punto_alto = punto_alto
     cv2.circle(output, punto_alto, 20, (230,230,50), 2)
+    if punto_basso[1] > ALTEZZA - 30 and punto_alto[1] > ALTEZZA - 30:
+        robot.motors.motors(-30, -30)
+        time.sleep(0.1)
     #trova errore angolo
     errore_angolo = getAngle(punto_basso, (0, ALTEZZA), punto_alto) #angolo tra l'angolo in basso sx il punto basso della linea e la parte alta della linea
     errore_angolo = errore_angolo - 90 # 90 è il target value
@@ -86,11 +89,11 @@ def linea(frame, robot):
     #trova errore linea
     # errore linea tenendo in considerazione ancheil punto alto errore_linea = ((punto_basso[0]+punto_alto[0])//2) - LARGHEZZA//2
     errore_basso_x = punto_basso[0] - (LARGHEZZA//2)
-    errore_basso_y = ALTEZZA - punto_basso[1]
+    basso_y = punto_basso[1]
     
     #ritorno (errore linea, errore angolo)
     errore_alto_x = punto_alto[0] - (LARGHEZZA//2)
-    errore_alto_y = punto_alto[1]
+    alto_y = punto_alto[1]
     
     cv2.imshow('output', output)
-    return errore_basso_x, errore_basso_y, errore_alto_x, errore_alto_y
+    return errore_basso_x, basso_y, errore_alto_x, alto_y
