@@ -80,7 +80,10 @@ def linea(frame, robot):
     robot.last_punto_alto = punto_alto
     cv2.circle(output, punto_alto, 20, (230,230,50), 2)
     if punto_basso[1] > ALTEZZA - 30 and punto_alto[1] > ALTEZZA - 30:
-        robot.motors.motors(-30, -30)
+        if punto_alto[0] < LARGHEZZA//2:
+            robot.motors.motors(-30, -30)
+        else:
+            robot.motors.motors(-30, -30)
         time.sleep(0.1)
     #trova errore angolo
     errore_angolo = getAngle(punto_basso, (0, ALTEZZA), punto_alto) #angolo tra l'angolo in basso sx il punto basso della linea e la parte alta della linea

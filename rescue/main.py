@@ -28,7 +28,10 @@ def rescue(robot):
         LINEA
         """
         frame = robot.get_frame().copy()
-        errore_basso_x, errore_basso_y, errore_alto_x, errore_alto_y = linea(frame, robot)
+        errori = linea(frame, robot)
+        if errori is None:
+            continue
+        errore_basso_x, errore_basso_y, errore_alto_x, errore_alto_y = errori
         speed = 40
         k_basso_x, k_basso_y, k_alto_x, k_alto_y = 0.9, 0, 0.1, 1.3 #1 0.3
         errore_alto_y *= 1 if errore_alto_x > 0 else -1
