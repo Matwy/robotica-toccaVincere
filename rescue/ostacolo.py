@@ -35,8 +35,6 @@ def ostacolo(robot, _dir = 1):
     
     robot.motors.motors(60*_dir, -60*_dir)
     time.sleep(1.3)
-    robot.motors.motors(0, 0)
-    time.sleep(2)
 
     t_inizio_ostacolo = time.time()
     side_tof_index = 0 if _dir == 1 else 1

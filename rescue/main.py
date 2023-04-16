@@ -36,7 +36,7 @@ def rescue(robot):
         k_basso_x, k_basso_y, k_alto_x, k_alto_y = 0.9, 0, 0.1, 1.3 #1 0.3
         errore_alto_y *= 1 if errore_alto_x > 0 else -1
         basso_x, basso_y, altoX, altoY= int(errore_basso_x*k_basso_x), int(errore_basso_y*k_basso_y), int(errore_alto_x*k_alto_x), int(errore_alto_y*k_alto_y)
-        print("[LINEA]", "basso = ",basso_x, basso_y, (basso_x-basso_y), "   alto =", (altoX+altoY), "   time =", time.time())
+        # print("[LINEA]", "basso = ",basso_x, basso_y, (basso_x-basso_y), "   alto =", (altoX+altoY), "   time =", time.time())
         # if altoY > 0:
         # errore_alto = abs(altoY) + altoX, abs(altoY) - altoX                
         # else:
@@ -113,13 +113,10 @@ def rescue(robot):
 
 if __name__ == '__main__':
     robot = Robot()
-    # robot.servo.cam_cubo()
     # while True:
         # print(robot.get_gyro_value())
-    # robot.servo.cam_linea()
     # robot.servo.pinza_giu()
     # robot.servo.pinza_su()
-    # robot.motors.motors(50, 100)
     # ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()
@@ -127,4 +124,7 @@ if __name__ == '__main__':
     # while True:
     #     print(robot.get_tof_mesures())
     print("[MAIN] rescue()")
+    # robot.servo.morti_svuota()
+    # robot.servo.vivi_svuota()
     rescue(robot)
+    

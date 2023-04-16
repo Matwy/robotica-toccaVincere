@@ -180,7 +180,7 @@ def trova_linea(robot):
                 avanti = not avanti
                 timer_alza_cam = time.time()
 
-        cv2.imshow("gapping", frame)  
+        # cv2.imshow("gapping", frame)  
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             robot.motors.motors(0, 0)

@@ -92,18 +92,22 @@ class Servo:
             time.sleep(0.2)
     
     def becco_molla_vivi(self):
+        """
         self.morti.angle = 155
         self.becco_sx.angle = 115
+        
+        self.vivi.angle = 5
+        time.sleep(0.3)
+        self.morti.angle = 180
+        """
+        self.becco_sx.angle = 115
+        time.sleep(0.3)
         for i in range(3):
             self.becco_dx.angle = 60
             time.sleep(0.2)
             self.becco_dx.angle = 30
             time.sleep(0.2)        
         
-        self.vivi.angle = 5
-        time.sleep(0.3)
-        self.morti.angle = 180
-
         self.pinza_svuota_cassoni()
         self.vivi.angle = 0
         
@@ -118,4 +122,4 @@ class Servo:
     def morti_default(self):
         self.morti.angle = 180
     def morti_svuota(self):
-        self.morti.angle = 70
+        self.morti.angle = 85

@@ -58,6 +58,7 @@ def scan_nero(img):
     bianco=cv2.erode(bianco,KERNEL,iterations=6)
     bianco=cv2.dilate(bianco,KERNEL,iterations=4)
     mask_nero = cv2.bitwise_not(bianco)#nero
+    cv2.imshow("debug gap", mask_nero)
     return mask_nero
 
 def get_bigger_area(mask):
@@ -228,14 +229,13 @@ def get_punto_basso(mask, last_punto_basso):
 def get_punto_alto(mask, last_punto_alto):
     collisione = np.logical_and(mask, MASK_BORDI)#and tra i bordi e la linea
     collisione = np.uint8(collisione)*255 #per riconvertire in immagine
-    cv2.imshow("collisioni", collisione)
     amount, labels = cv2.connectedComponents(collisione)
     if amount > 2:
         #caso in cui le intersezioni sono due o più quindi viene scelta la più alta
         return confronta_last(amount, labels, collisione, last_punto_alto[0], last_punto_alto[1])
 
     if amount == 2:
-        print("non ha senso questa cosa spero che non venga mai stampato in console questo messaggio")
+        # print("non ha senso questa cosa spero che non venga mai stampato in console questo messaggio")
         #c'è solo un'intersezione quindi trovane il centro
         M = cv2.moments(collisione)
         if M["m00"] != 0:

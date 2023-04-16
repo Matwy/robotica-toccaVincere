@@ -1,17 +1,17 @@
+import sys
+sys.path.insert(1, './motors-sensors')
 import cv2
-from PiVideoStream import PiVideoStream
+from Robot import Robot
 import time
-
-vs = PiVideoStream().start()
-time.sleep(2.0)
 
 start_time = time.time()
 counter_frame = 0
 count = 0
+robot = Robot()
     
 while True:
     counter_frame += 1
-    frame = vs.read()
+    frame = robot.get_frame().copy()
     cv2.imshow("Frame", frame)
 
     key = cv2.waitKey(1) & 0xFF
@@ -21,12 +21,13 @@ while True:
         cv2.imwrite((str(count)) +'.jpg', frame)
 
     if key == ord("q"):
+        robot.motors.motors(0, 0)
+        robot.cam_stream.stop()
+        robot.sensors_stream.stop()
+        robot.servo.deinit_pca()
         cv2.destroyAllWindows()
         break
 
 finish_time = time.time()
 fps = counter_frame / (finish_time - start_time)
 print("fps: ", fps)
-
-cv2.destroyAllWindows()
-vs.stop()

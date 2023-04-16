@@ -46,7 +46,7 @@ class Incrocio:
         return None
 
 
-    MODELLO_VERDE = 'giugia_leccami_lo_speck.tflite' # le mie non le vittime
+    MODELLO_VERDE = 'verde_ef0.tflite' # le mie non le vittime
 
     def __init__(self, robot):
         self.robot = robot
@@ -57,7 +57,7 @@ class Incrocio:
         self.doppioverde = False
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_VERDE, use_coral=False, num_threads=4)
-        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.20)
+        detection_options = processor.DetectionOptions(max_results=4, score_threshold=0.80)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_verdi = vision.ObjectDetector.create_from_options(options)
     
@@ -72,6 +72,7 @@ class Incrocio:
             x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
             if w*h  > 2000:
                 continue
+            print(d)
             verdi.append((x+(w//2),y+(h//2)))
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (0,255,0), -1)
             cv2.circle(self.output, (x+(w//2),y+(h//2)), 4, (70,10, 200), 2)
@@ -189,7 +190,7 @@ class Incrocio:
                 #    FASE 3    #
                 # se ho già trovato l'end point seguilo
                 self.end_point = get_nearest_countourn_point(mask_nero, self.end_point)
-                print('[INCROCIO] RAGGIUNGI ENDPOINT ', self.end_point)
+                # print('[INCROCIO] RAGGIUNGI ENDPOINT ', self.end_point)
                 if self.end_point is None: return
                 cv2.circle(self.output, self.end_point, 10, (50,50, 255), 2)
                 self.robot.last_punto_basso = self.centro
