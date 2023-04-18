@@ -7,7 +7,7 @@ from ez import EZ
 
 salita = False
 MASK_BORDI_SALITA_NOISE = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
-cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 20), (LARGHEZZA-20, ALTEZZA), (255), -1)
+cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 35), (LARGHEZZA-20, ALTEZZA), (255), -1)
 MASK_BORDI_SALITA_NOISE = cv2.bitwise_not(MASK_BORDI_SALITA_NOISE)
 
 def get_x_bottom_line(frame):

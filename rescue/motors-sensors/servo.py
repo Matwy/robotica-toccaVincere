@@ -38,14 +38,14 @@ class Servo:
             print("dio sporco negro")
     
     def cam_linea(self):
-        self.set_cam_angle(160)
+        self.set_cam_angle(35)
     
     def cam_cubo(self):
-        self.set_cam_angle(130)
+        self.set_cam_angle(70)
     
      
     def cam_EZ(self):
-        self.set_cam_angle(110)
+        self.set_cam_angle(102)
     
     """
     PINZA

@@ -52,7 +52,7 @@ class EZ:
     
     def giro_bordi(self, frame, mode):
         bordi = scan_bordi(frame)
-        
+        cv2.imshow("bordi",bordi)
         aree_muri_pavimento = cv2.bitwise_not(bordi)
         amount, labels = cv2.connectedComponents(aree_muri_pavimento)
         
@@ -70,7 +70,7 @@ class EZ:
         elif mode == 'basso':
             roi_pt1, roi_pt2 = (0, 90), (self.LARGHEZZA, 95)
         else:
-            roi_pt1, roi_pt2 = (0, 45), (self.LARGHEZZA, 50)
+            roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
             
         roi = area_bassa[roi_pt1[1] : roi_pt2[1], roi_pt1[0] : roi_pt2[0]]
         cv2.rectangle(self.output, roi_pt1, roi_pt2, (125, 125, 7), 2)
@@ -139,7 +139,7 @@ class EZ:
                 time.sleep(0.5)
                 self.robot.motors.motors(-60, 60)
                 time.sleep(0.7)
-                self.robot.motors.motors(80, 80)
+                self.robot.motors.motors(100, 100)
                 time.sleep(1)
                 self.robot.motors.motors(60, -60)
                 time.sleep(1.3)
@@ -250,12 +250,12 @@ class EZ:
                 # robot troppo vicino al muro di destra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
                 time.sleep(1.5)
-                self.robot.motors.motors(-60, 60)
+                self.robot.motors.motors(-100, 100)
                 time.sleep(0.7)
                 self.robot.motors.motors(100, 100)
-                time.sleep(0.7)
-                self.robot.motors.motors(60, -60)
-                time.sleep(0.7)
+                time.sleep(1.2)
+                self.robot.motors.motors(100, -100)
+                time.sleep(1)
                 self.robot.motors.motors(-50, -50)
                 time.sleep(0.5)
                 self.triangolo_vicino_counter = 0
@@ -265,12 +265,12 @@ class EZ:
                 # robot troppo vicino al muro di sinistra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
                 time.sleep(1.5)
-                self.robot.motors.motors(60, -60)
+                self.robot.motors.motors(100, -100)
                 time.sleep(0.7)
                 self.robot.motors.motors(100, 100)
-                time.sleep(0.7)
-                self.robot.motors.motors(-60, 60)
-                time.sleep(0.7)
+                time.sleep(1.2)
+                self.robot.motors.motors(-100, 100)
+                time.sleep(1)
                 self.robot.motors.motors(-50, -50)
                 time.sleep(0.5)
                 self.triangolo_vicino_counter = 0
@@ -300,6 +300,9 @@ class EZ:
                 self.robot.servo.morti_svuota()
                 self.triangolo_rosso += 1
             time.sleep(1)
+            self.robot.motors.motors(50, 50)
+            time.sleep(0.5)
+
             self.triangolo_vicino_counter = 0
             self.robot.servo.vivi_default()
             self.robot.servo.morti_default()
@@ -348,31 +351,38 @@ class EZ:
                 exit()
     
     def trova_buco_uscita(self):
-        self.robot.motors.motors(40,-40)
         self.robot.servo.cam_linea()
-        time.sleep(0.3)
-        self.robot.motors.motors(30,30)
-        time.sleep(2)
+        self.robot.motors.motors(60, 60)
+        time.sleep(1)
+        self.robot.motors.motors(50, -50)
+        time.sleep(1.5)
         
+        buco_first_value = None
+        buco_last_value = None
+        self.robot.motors.motors(20, -20)
         t_inizio = time.time()
-        self.robot.motors.motors(40, -40)
-        while time.time() - t_inizio < 3.5:
+        while time.time() - t_inizio < 8:
             tof_front = self.robot.get_tof_mesures()[2]
-            print("front_tof", tof_front)
-            if tof_front > 700:
-                print("buso")
-                self.robot.motors.motors(40, -40)
-                time.sleep(0.2)
-                self.robot.motors.motors(0, 0)
-                return True        
-        self.robot.servo.cam_EZ()
-        return False
+            if tof_front > 600 and buco_first_value is None:
+                buco_first_value = time.time() - t_inizio
+                print("first", buco_first_value)
+            
+            if tof_front < 600 and buco_first_value is not None and buco_last_value is None:
+                buco_last_value = time.time() - t_inizio
+                print("last",buco_last_value)
+
+        buco_mid_time = 8 - buco_last_value + (buco_last_value - buco_first_value)/2
+        print("midddd",buco_mid_time)
+        self.robot.motors.motors(-20, 20)
+        time.sleep(buco_mid_time)
+        return True
     
     def is_striscia_nera(self):
         frame = self.robot.get_frame().copy()
-        gray_scale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        cut = frame[self.ALTEZZA-30:self.ALTEZZA, 0:self.LARGHEZZA]
+        gray_scale = cv2.cvtColor(cut, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(gray_scale, (7,7), 5)
-        ret, nero = cv2.threshold(blur,0,150,cv2.THRESH_BINARY)
+        ret, nero = cv2.threshold(blur,255-190,255,cv2.THRESH_BINARY)
         cv2.imshow("ernegro", nero)
         nero_points = np.count_nonzero(nero==0)
         print("non zero", nero_points)
@@ -404,15 +414,27 @@ class EZ:
         return False
         
     def loop_uscita(self):
+        last_30_mesures = []
         while True:
             frame = self.robot.get_frame().copy()
-            
             self.giro_bordi(frame, 'basso')
             
             tof_dx = self.robot.get_tof_mesures()[1]
-            print("tof_dx", tof_dx)
-            if tof_dx > 750:
+
+            # lista massimo 30 elementi rimuovo il primo e aggiungo alla fine
+            last_30_mesures.append(tof_dx)
+            if len(last_30_mesures) <= 200:
+                continue # lista non ancora a 30
+            last_30_mesures.pop(0)
+            
+            # ultima misura e media ultime misure
+            last_mesure = last_30_mesures[199]
+            last_30_average = np.mean(last_30_mesures)
+            print("[USCITA] differenza distanza", last_mesure - last_30_average)
+            # se l'ultima misura è molto grande rispetto la media allora c'è il buco
+            if last_mesure - last_30_average > 3000:
                 if self.trova_buco_uscita():
+                    self.robot.motors.motors(0,0)
                     if self.controllo_tipo_uscita():
                         self.robot.motors.motors(0, 0)
                         self.robot.camstream_linea()

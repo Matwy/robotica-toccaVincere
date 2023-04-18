@@ -7,7 +7,7 @@ from Incrocio import Incrocio
 from gap_dopio import get_centro_linea
 
 MASK_BORDI_SALITA_NOISE = np.zeros((ALTEZZA, LARGHEZZA), dtype='uint8')
-cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 20), (LARGHEZZA-20, ALTEZZA), (255), -1)
+cv2.rectangle(MASK_BORDI_SALITA_NOISE, (20, 35), (LARGHEZZA-20, ALTEZZA), (255), -1)
 MASK_BORDI_SALITA_NOISE = cv2.bitwise_not(MASK_BORDI_SALITA_NOISE)
 
 def salita(robot):
@@ -41,15 +41,16 @@ def salita(robot):
         frame[MASK_BORDI_SALITA_NOISE == 255] = 255
         #calcola il centro della linea sotto e l'angolo
         x_linea, angle = get_centro_linea(robot, frame)
-        if x_linea is None or angle is None:
+        if x_linea is False or angle is False:
             robot.motors.motors(30,30)
             continue
 
         # centro il robot 
-        sp, kp, kd = 30, 1.5, 2
+        sp, kp, kd = 30, 1.5, 0.5
         errore_linea = x_linea - (LARGHEZZA//2)
         P, D= int(errore_linea*kp), int(angle*kd)
         robot.motors.motors(sp + (P+D), sp - (P+D))
+        print("[artito democratico]", P, D)
         
         if not robot.is_salita():
             piano_count += 1

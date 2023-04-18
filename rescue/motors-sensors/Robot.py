@@ -28,8 +28,11 @@ class Robot():
         return (self.cam_stream.LARGHEZZA, self.cam_stream.ALTEZZA)
     
     def get_gyro_value(self):
-        return self.gyro.read()
-    
+        try:
+            return self.gyro.read()
+        except:
+            return 0
+
     def is_salita(self):
         # print("inclinamelo ", get_inclinazione())
         return self.get_gyro_value() > 6
@@ -55,17 +58,25 @@ class Robot():
             if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                 self.motors.motors(0,0)
                 return True
-            
-            sx_speed, dx_speed = (0,30) if self.cavo_sinistra.is_pressed else (30,0)    
-            
-            self.motors.motors(-sx_speed,-dx_speed)
-            t_fine = time.time()+4
+
+            #  provo un po avanti 
+            self.motors.motors(0,0)
+            t_fine = time.time()+0.2
             while time.time() < t_fine:
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                     return True
             
+            sx_speed, dx_speed = (-30,40) if self.cavo_sinistra.is_pressed else (40,-30)    
+            # porto avanti il lato che non tocca
             self.motors.motors(sx_speed,dx_speed)
-            t_fine = time.time()+5
+            t_fine = time.time()+2
             while time.time() < t_fine:
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                     return True
+            """
+            self.motors.motors(-sx_speed,-dx_speed)
+            t_fine = time.time()+2
+            while time.time() < t_fine:
+                if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
+                    return True
+            """

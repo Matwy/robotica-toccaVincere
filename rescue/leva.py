@@ -51,7 +51,10 @@ while True:
         stop_script()
         print ("[LEVA] ---- Stopped ---- " )
         run = 0
-        arduinoi2c.write(bytes([1,0]))
-        arduinoi2c.write(bytes([0,0]))
+        try:
+            arduinoi2c.write(bytes([1,0]))
+            arduinoi2c.write(bytes([0,0]))
+        except:
+            print("un casino for real")
         while not leva.is_pressed:
             time.sleep(0.1)
