@@ -43,9 +43,11 @@ class Servo:
     def cam_cubo(self):
         self.set_cam_angle(70)
     
-     
     def cam_EZ(self):
         self.set_cam_angle(102)
+    
+    def cam_uscita_EZ(self):
+        self.set_cam_angle(55)
     
     """
     PINZA

@@ -7,7 +7,7 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
-from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point
+from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point, get_bigger_component
 class EZ:
     Y_ABBASSA_BRACCIO = 50
     Y_BECCO_SOPRA = 83
@@ -68,7 +68,7 @@ class EZ:
         if mode == 'alto':
             roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
         elif mode == 'basso':
-            roi_pt1, roi_pt2 = (0, 90), (self.LARGHEZZA, 95)
+            roi_pt1, roi_pt2 = (0, 100), (self.LARGHEZZA, 105)
         else:
             roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
             
@@ -351,6 +351,9 @@ class EZ:
                 exit()
     
     def trova_buco_uscita(self):
+        self.robot.motors.motors(0, 0)
+        time.sleep(10)
+        """
         self.robot.servo.cam_linea()
         self.robot.motors.motors(60, 60)
         time.sleep(1)
@@ -375,6 +378,7 @@ class EZ:
         print("midddd",buco_mid_time)
         self.robot.motors.motors(-20, 20)
         time.sleep(buco_mid_time)
+        """
         return True
     
     def is_striscia_nera(self):
@@ -390,35 +394,89 @@ class EZ:
             return True
         return False 
     
+    def detect_striscia_uscita(self, frame):
+        gray_scale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #grigio
+        blur = cv2.GaussianBlur(gray_scale, (7,7), 5) #sfuoca
+        ret, bianco = cv2.threshold(blur,255-190,255,cv2.THRESH_BINARY) # bianco da threshold
+        nero = cv2.bitwise_not(bianco) # inverti per avere il nero
+        nero =cv2.erode(nero,np.ones((7,7), np.uint8),iterations=1) # erodi per togliere il noise
+        cv2.rectangle(nero, (0, 0), (20, 20), (0), -1)  # togli le ombre che ci sono in alto
+        cv2.rectangle(nero, (self.LARGHEZZA-20, 0), (self.LARGHEZZA, 20), (0), -1)
+        striscia = get_bigger_component(nero) # prendi la roba più grande
+        return striscia
+    
+    def centro_striscia(self, striscia):
+        M = cv2.moments(striscia)
+        if M["m00"] == 0: return None
+        striscia_x = int(M["m10"] / M["m00"])
+        striscia_y = int(M["m01"] / M["m00"])        
+        return striscia_x, striscia_y
+    
     def controllo_tipo_uscita(self):
+        self.robot.motors.motors(20,20)
         t_inizio = time.time()
-        self.robot.motors.motors(30, 30)
-        self.robot.servo.cam_linea()
-        time.sleep(0.3)
-        while time.time() - t_inizio < 6:
+        # self.robot.motors.motors(30, 30)
+        self.robot.servo.cam_uscita_EZ()
+        time.sleep(0.5)
+        
+        striscia_persa_counter = 0
+        striscia_bassa_counter = 0
+        cam_linea = False
+        cam_linea_time_start = None
+        
+        while True:
+            print(striscia_persa_counter)
             frame = self.robot.get_frame().copy()
-            if self.is_striscia_nera():
-                self.robot.motors.motors(40, 40)
-                time.sleep(1.5)
+            
+            striscia_mask = self.detect_striscia_uscita(frame)
+            
+            if cam_linea:
+                striscia_mask = striscia_mask[0:30, :]
+                
+            striscia = self.centro_striscia(striscia_mask)
+            if striscia_persa_counter >= 2000:
+                break
+            if striscia is None:
+                striscia_persa_counter += 1
+                continue
+            striscia_persa_counter = 0
+
+            sp, kp = 30, 0.5
+            errore = striscia[0] - (self.LARGHEZZA//2)
+            self.robot.motors.motors(sp + int(errore*kp), sp - int(errore*kp))
+            
+            if striscia[1] > self.ALTEZZA-50 and cam_linea is False:
+                striscia_bassa_counter += 1
+                if striscia_bassa_counter > 5:
+                    cam_linea = True
+                    cam_linea_time_start = time.time()
+                    self.robot.servo.cam_linea()
+            else:
+                striscia_bassa_counter = 0
+            if cam_linea_time_start is not None: print(time.time() - cam_linea_time_start)
+            if cam_linea_time_start is not None and time.time() - cam_linea_time_start > 3:
                 return True
             
+            cv2.circle(frame, striscia, 5, (100, 220, 255), 3)
+            cv2.imshow("trova_striscia", striscia_mask)
             key = cv2.waitKey(1) & 0xFF
             if self.robot.cavo_sinistra.is_pressed or self.robot.cavo_destra.is_pressed:
                 break
-        
-        self.robot.motors.motors(-70, -70)
-        time.sleep(0.7)
+            
+        self.robot.motors.motors(-100,-60)
+        time.sleep(1.5)
+        self.robot.motors.motors(-70, 70)
+        time.sleep(2.5)
         self.robot.servo.cam_EZ()
-        self.robot.motors.motors(-80, 80)
-        time.sleep(2.2)
         return False
+        
+
         
     def loop_uscita(self):
         last_30_mesures = []
         while True:
             frame = self.robot.get_frame().copy()
             self.giro_bordi(frame, 'basso')
-            
             tof_dx = self.robot.get_tof_mesures()[1]
 
             # lista massimo 30 elementi rimuovo il primo e aggiungo alla fine
@@ -433,14 +491,17 @@ class EZ:
             print("[USCITA] differenza distanza", last_mesure - last_30_average)
             # se l'ultima misura è molto grande rispetto la media allora c'è il buco
             if last_mesure - last_30_average > 3000:
-                if self.trova_buco_uscita():
-                    self.robot.motors.motors(0,0)
-                    if self.controllo_tipo_uscita():
-                        self.robot.motors.motors(0, 0)
-                        self.robot.camstream_linea()
-                        self.robot.servo.cam_linea()
-                        time.sleep(1)
-                        break
+                # if self.trova_buco_uscita():
+                self.robot.motors.motors(60,60)
+                time.sleep(1)
+                self.robot.motors.motors(60,-60)
+                time.sleep(1.7)
+                if self.controllo_tipo_uscita():
+                    self.robot.motors.motors(0, 0)
+                    self.robot.camstream_linea()
+                    self.robot.servo.cam_linea()
+                    time.sleep(1)
+                    break
             
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):

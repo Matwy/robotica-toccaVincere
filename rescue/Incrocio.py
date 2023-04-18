@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from global_var import ALTEZZA, LARGHEZZA
 from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_valid_verdi, get_n_aree_biance, get_nearest_countourn_point
-from gap_dopio import doppio_verde
 import time
 from tflite_support.task import core
 from tflite_support.task import processor

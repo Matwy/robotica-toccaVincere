@@ -8,7 +8,10 @@ start_time = time.time()
 counter_frame = 0
 count = 0
 robot = Robot()
-    
+robot.camstream_EZ()
+time.sleep(1)
+
+
 while True:
     counter_frame += 1
     frame = robot.get_frame().copy()
