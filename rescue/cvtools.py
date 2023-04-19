@@ -14,7 +14,7 @@ upper_green = np.array([90,255,121])
 lower_green_EZ = np.array([30,120,40]) 
 upper_green_EZ = np.array([130,255,205])
 
-lower_red2 = np.array([130,70,90])
+lower_red2 = np.array([150,150,90])
 upper_red2 = np.array([255,255,240])
 
 KERNEL = np.ones((5,5), np.uint8)

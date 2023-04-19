@@ -34,7 +34,7 @@ def ostacolo(robot, _dir = 1):
         return
     
     robot.motors.motors(60*_dir, -60*_dir)
-    time.sleep(1.3)
+    time.sleep(1.5)
 
     t_inizio_ostacolo = time.time()
     side_tof_index = 0 if _dir == 1 else 1
@@ -44,14 +44,14 @@ def ostacolo(robot, _dir = 1):
         print("side_tof", side_tof)
         if side_tof < 200:
             if _dir == 1:
-                robot.motors.motors(-20, 80)
+                robot.motors.motors(30, 80)
             else:
-                robot.motors.motors(80, -20)
+                robot.motors.motors(80, 30)
         else:
             if _dir == 1:
-                robot.motors.motors(40, 80)
+                robot.motors.motors(50, 80)
             else:
-                robot.motors.motors(80, 40)
+                robot.motors.motors(80, 50)
                 
         time.sleep(0.05)
 

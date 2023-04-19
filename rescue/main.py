@@ -96,10 +96,10 @@ def rescue(robot):
         else:
             rosso_count = 0
         
-        if rosso_count > 5:
+        if rosso_count > 15:
             robot.motors.motors(0,0)
             print("[ROSSO] rosso")
-            # time.sleep(6)
+            time.sleep(6)
         
         cv2.imshow("frame", frame)
         key = cv2.waitKey(1) & 0xFF
@@ -117,14 +117,15 @@ if __name__ == '__main__':
         # print(robot.get_gyro_value())
     # robot.servo.cam_EZ()
     # robot.servo.pinza_su()
+    # robot.motors.motors(100,100)
     # robot.servo.pinza_giu()
-    ez = EZ(robot)
+    # ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()
-    ez.loop_uscita()
+    # ez.loop_uscita()
     # while True:
     #     print(robot.get_tof_mesures())
     print("[MAIN] rescue()")
     # robot.servo.morti_svuota()
     # robot.servo.vivi_svuota()
-    # rescue(robot)
+    rescue(robot)

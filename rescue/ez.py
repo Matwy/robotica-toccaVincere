@@ -234,7 +234,7 @@ class EZ:
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,255), 4)
             return triangoli[0]
     
-    def raggiungi_triangolo(self, triangolo, tipo_triangolo):
+    def raggiungi_triangolo(self, triangolo):
         speed = 90
         errore_x = triangolo[0] + (triangolo[2]//2) - (self.LARGHEZZA//2)
         self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
@@ -282,22 +282,24 @@ class EZ:
             time.sleep(2)
             self.robot.motors.motors(-80, 80)
             time.sleep(2.2)
-            if tipo_triangolo < 0:
+            if self.tipo_triangolo < 0:
                 self.robot.motors.motors(-60, -40)
             else:
                 self.robot.motors.motors(-40, -60)
             time.sleep(3)
             self.robot.servo.pinza_svuota_cassoni()
-            
-            if tipo_triangolo < 0:
+                
+            if self.tipo_triangolo <= 0:
                 self.robot.motors.motors(-30, -25)
                 time.sleep(1.5)
                 self.robot.servo.vivi_svuota()
                 self.triangolo_verde += 1
-            else:
+                self.tipo_triangolo = 0
+            elif self.triangolo_verde >= 1:
                 self.robot.motors.motors(-25, -30)
                 time.sleep(1.5)
                 self.robot.servo.morti_svuota()
+                self.tipo_triangolo = 0
                 self.triangolo_rosso += 1
             time.sleep(1)
             self.robot.motors.motors(50, 50)
@@ -312,14 +314,14 @@ class EZ:
 
     def loop_triangoli(self):
         self.triangolo_vicino_counter = 0
-        tipo_triangolo = 0
+        self.tipo_triangolo = 0
         while True:
             frame = self.robot.get_frame()
             self.output = frame.copy()
             
             triangolo = self.get_selected_triangolo(frame)
             if triangolo is not None:
-                tipo_triangolo += -1 if triangolo[-1] == 0 else 1
+                self.tipo_triangolo += -1 if triangolo[-1] == 0 else 1
                 
                 centro_triangolo = (triangolo[0]+(triangolo[2]//2), triangolo[1]+(triangolo[3]//2))
                 bordi = scan_bordi(frame)
@@ -328,12 +330,12 @@ class EZ:
                 distanza_bordi_triangolo = np.linalg.norm(np.array(centro_triangolo) - punto_bordo_vicino_triangolo)
                 
                 self.output[bordi == 255] = (20, 200, 200)
-                print("[loop_triangoli()] ", triangolo, "bordi", distanza_bordi_triangolo," triangolo vicino ", self.triangolo_vicino_counter, "  tof ", self.robot.get_tof_mesures()[1], "  tipo_triangolo  ", tipo_triangolo)
-                self.raggiungi_triangolo(triangolo, tipo_triangolo)
+                print("[loop_triangoli()] ", triangolo, "bordi", distanza_bordi_triangolo," triangolo vicino ", self.triangolo_vicino_counter, "  tof ", self.robot.get_tof_mesures()[1], "  tipo_triangolo  ", self.tipo_triangolo)
+                self.raggiungi_triangolo(triangolo)
                 
             else:
                 # BORDI
-                tipo_triangolo = 0
+                self.tipo_triangolo = 0
                 mode_giro_bordi = 'altissimo' 
                 self.giro_bordi(frame, mode_giro_bordi)
                 
