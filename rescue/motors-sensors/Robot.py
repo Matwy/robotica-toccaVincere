@@ -3,14 +3,14 @@ import time
 import PiVideoStreamUndistorted
 import PiVideoStream
 from Motors import Motors
-from multiTof import sensors_stream
+from tofs import Tofs
 from servo import Servo
 from gyro import Gyro
 class Robot():
     def __init__(self):
         self.servo = Servo()
         self.cam_stream = PiVideoStreamUndistorted.PiVideoStream().start()
-        self.sensors_stream = sensors_stream().start()
+        self.sensors_stream = Tofs()
         self.gyro = Gyro()
         time.sleep(0.5)
         self.motors = Motors()
@@ -20,7 +20,11 @@ class Robot():
         self.last_punto_basso = (136//2, 137)
             
     def get_tof_mesures(self):
-        return self.sensors_stream.get_range()
+        try:
+            return self.sensors_stream.detect_range()
+        except:
+            print("diocancaoncaoncaonc")
+            return [8190, 8190, 8190]
     def get_frame(self):
         return self.cam_stream.read()
     

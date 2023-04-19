@@ -77,7 +77,7 @@ class EZ:
         
         if np.count_nonzero(roi == 0) < 100:
             #destra
-            self.robot.motors.motors(80, 50)
+            self.robot.motors.motors(80, 40)
             return
 
         roi_mask_bordi = cv2.bitwise_not(roi)
@@ -468,7 +468,7 @@ class EZ:
         self.robot.motors.motors(-100,-60)
         time.sleep(1.5)
         self.robot.motors.motors(-70, 70)
-        time.sleep(2.5)
+        time.sleep(2)
         self.robot.servo.cam_EZ()
         return False
         
@@ -483,16 +483,17 @@ class EZ:
 
             # lista massimo 30 elementi rimuovo il primo e aggiungo alla fine
             last_30_mesures.append(tof_dx)
-            if len(last_30_mesures) <= 200:
+            if len(last_30_mesures) <= 15:
                 continue # lista non ancora a 30
             last_30_mesures.pop(0)
             
             # ultima misura e media ultime misure
-            last_mesure = last_30_mesures[199]
+            last_mesure = last_30_mesures[13]
             last_30_average = np.mean(last_30_mesures)
             print("[USCITA] differenza distanza", last_mesure - last_30_average)
             # se l'ultima misura è molto grande rispetto la media allora c'è il buco
             if last_mesure - last_30_average > 3000:
+                last_30_mesures = []
                 # if self.trova_buco_uscita():
                 self.robot.motors.motors(60,60)
                 time.sleep(1)

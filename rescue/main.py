@@ -114,18 +114,18 @@ def rescue(robot):
 if __name__ == '__main__':
     robot = Robot()
     # while True:
-        # print(robot.get_gyro_value())
+    #     print(robot.get_gyro_value())
     # robot.servo.cam_EZ()
     # robot.servo.pinza_su()
     # robot.motors.motors(100,100)
     # robot.servo.pinza_giu()
-    # ez = EZ(robot)
+    ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()
-    # ez.loop_uscita()
+    ez.loop_uscita()
     # while True:
-    #     print(robot.get_tof_mesures())
+        # print(robot.get_tof_mesures())
     print("[MAIN] rescue()")
     # robot.servo.morti_svuota()
     # robot.servo.vivi_svuota()
-    rescue(robot)
+    # rescue(robot)
