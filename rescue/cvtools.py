@@ -399,7 +399,6 @@ def get_valid_verdi(punti_verdi, centro_incrocio, collisione_angolo_piccolo):
         verdi_finali.append(verdi_destra[0])
     if len(verdi_sinistra) > 0:
         verdi_finali.append(verdi_sinistra[0])
-    print(verdi_finali)
     return verdi_finali
 
 def get_points_verdi(mask_verde, centro_incrocio, collisione_angolo_piccolo):
@@ -537,5 +536,5 @@ def isRosso(frame):
     rosso = cv2.dilate(rosso,KERNEL,iterations=2)
     
     n_rosso = np.count_nonzero(rosso)
-    print(n_rosso)
+    # print(n_rosso)
     return n_rosso > 2000

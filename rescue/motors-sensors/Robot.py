@@ -70,7 +70,7 @@ class Robot():
                 if self.cavo_sinistra.is_pressed and self.cavo_destra.is_pressed:
                     return True
             
-            sx_speed, dx_speed = (-30,40) if self.cavo_sinistra.is_pressed else (40,-30)    
+            sx_speed, dx_speed = (-10,40) if self.cavo_sinistra.is_pressed else (40,-10)    
             # porto avanti il lato che non tocca
             self.motors.motors(sx_speed,dx_speed)
             t_fine = time.time()+2

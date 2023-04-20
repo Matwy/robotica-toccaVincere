@@ -71,7 +71,7 @@ class Incrocio:
             x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
             if w*h  > 2000:
                 continue
-            print(d)
+            # print(d)
             verdi.append((x+(w//2),y+(h//2)))
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (0,255,0), -1)
             cv2.circle(self.output, (x+(w//2),y+(h//2)), 4, (70,10, 200), 2)
@@ -96,9 +96,11 @@ class Incrocio:
         end_point = None
         if len(verdi) == 0:
             end_point = collisioni_bordo[-1][1]
+            print("[INCROCIO] dritto")
         
         elif len(verdi) == 1:
             verde_dx = False if verdi[0][0] < self.centro[0] else True # verde_dx = True verde a destra
+            print("[INCROCIO] verdeDX", verde_dx)
             collisioni_bordo.sort(key= lambda c : c[1][0], reverse=verde_dx) # ordino le collisioni in base alle loro x        ad esempio se il verde a destra prendo la collisione con la x più grande 
             end_point = collisioni_bordo[0][1]
             
@@ -113,7 +115,7 @@ class Incrocio:
     def centra_incrocio(self):
         # centra l'incrocio in modo proporzionale
         errore_x = self.centro[0] - (LARGHEZZA//2)
-        errore_y = (ALTEZZA//2) - self.centro[1]
+        errore_y = (ALTEZZA//2)+25 - self.centro[1]
         Px = int(errore_x*1.3)
         Py = int(errore_y*0.7)
         if errore_y > 0:
@@ -147,12 +149,12 @@ class Incrocio:
             
             if _centro is None:
                 self.uscita_counter += 1
-                print('[INCROCIO] USCITA _centro None')
+                # print('[INCROCIO] USCITA _centro None')
                 continue
             
             if self.centro is None or np.linalg.norm(np.array(self.centro) - np.array(_centro)) > 50:
                 self.uscita_counter += 1
-                print('[INCROCIO] USCITA', self.centro is None, n_aree_bianche_senza_loli <= 2, np.linalg.norm(np.array(self.centro) - np.array(_centro)))
+                # print('[INCROCIO] USCITA', self.centro is None, n_aree_bianche_senza_loli <= 2, np.linalg.norm(np.array(self.centro) - np.array(_centro)))
                 continue
             
             self.uscita_counter = 0
@@ -182,7 +184,7 @@ class Incrocio:
             if not self.is_centered and self.centro[1] < ALTEZZA - 30:
                 #    FASE 1    #
                 # Centra incrocio se non è centrato e l'incrocio è alto
-                print('[INCROCIO] CENTRA INCROCIO')
+                # print('[INCROCIO] CENTRA INCROCIO')
                 self.centra_incrocio()
                 
             elif self.end_point is not None:
@@ -198,8 +200,8 @@ class Incrocio:
                 errore_end_point = self.end_point[0] - (LARGHEZZA//2)
                 errore_centro = self.centro[0] - (LARGHEZZA//2)
                         
-                P, D= int(errore_centro*0.4), int(errore_end_point*1)
-                self.robot.motors.motors(20 + (P+D), 20 - (P+D))                    
+                P, D= int(errore_centro*0.5), int(errore_end_point*0.8)
+                self.robot.motors.motors(30 + (P+D), 30 - (P+D))                    
                     
             else:
                 #    FASE 2    #
@@ -214,7 +216,7 @@ class Incrocio:
                 # time.sleep(5)
                 # verdi_not_repeated = remove_repeated_and_big_verdi(raw_verdi)
                 self.end_point = self.calcolo_fine_incrocio(mask_nero, amount_bianco, labels_bianco, raw_verdi)
-                print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
+                # print('[INCROCIO] CALCOLO ENDPOINT ', self.end_point)
                 
 
             cv2.circle(self.output, self.centro, 15, (0,0,255), 2)

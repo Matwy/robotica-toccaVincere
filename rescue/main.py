@@ -124,7 +124,7 @@ if __name__ == '__main__':
     # ez.loop_triangoli()
     ez.loop_uscita()
     # while True:
-        # print(robot.get_tof_mesures())
+    #     print(robot.get_tof_mesures())
     print("[MAIN] rescue()")
     # robot.servo.morti_svuota()
     # robot.servo.vivi_svuota()

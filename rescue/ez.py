@@ -253,7 +253,7 @@ class EZ:
                 self.robot.motors.motors(-100, 100)
                 time.sleep(0.7)
                 self.robot.motors.motors(100, 100)
-                time.sleep(1.2)
+                time.sleep(0.8)
                 self.robot.motors.motors(100, -100)
                 time.sleep(1)
                 self.robot.motors.motors(-50, -50)
@@ -268,7 +268,7 @@ class EZ:
                 self.robot.motors.motors(100, -100)
                 time.sleep(0.7)
                 self.robot.motors.motors(100, 100)
-                time.sleep(1.2)
+                time.sleep(0.8)
                 self.robot.motors.motors(-100, 100)
                 time.sleep(1)
                 self.robot.motors.motors(-50, -50)
@@ -290,12 +290,12 @@ class EZ:
             self.robot.servo.pinza_svuota_cassoni()
                 
             if self.tipo_triangolo <= 0:
-                self.robot.motors.motors(-30, -25)
+                self.robot.motors.motors(-30, -30)
                 time.sleep(1.5)
                 self.robot.servo.vivi_svuota()
                 self.triangolo_verde += 1
                 self.tipo_triangolo = 0
-            elif self.triangolo_verde >= 1:
+            elif self.triangolo_verde >= 1 and self.tipo_triangolo > 0:
                 self.robot.motors.motors(-25, -30)
                 time.sleep(1.5)
                 self.robot.servo.morti_svuota()
@@ -425,16 +425,15 @@ class EZ:
         striscia_bassa_counter = 0
         cam_linea = False
         cam_linea_time_start = None
-        
+        diocan = 0
         while True:
-            print(striscia_persa_counter)
             frame = self.robot.get_frame().copy()
             
             striscia_mask = self.detect_striscia_uscita(frame)
             
-            if cam_linea:
-                striscia_mask = striscia_mask[0:30, :]
-                
+            # if cam_linea:
+            end_point_mask = striscia_mask[0:30, :]
+            end_point = self.centro_striscia(end_point_mask)
             striscia = self.centro_striscia(striscia_mask)
             if striscia_persa_counter >= 2000:
                 break
@@ -442,10 +441,21 @@ class EZ:
                 striscia_persa_counter += 1
                 continue
             striscia_persa_counter = 0
-
-            sp, kp = 30, 0.5
-            errore = striscia[0] - (self.LARGHEZZA//2)
+                
+            print("strisciay", striscia[1])
+            if end_point is None:
+                end_point = (self.LARGHEZZA//2, 0)
+            sp, kp = 90, 1
+            errore = end_point[0] - (self.LARGHEZZA//2)
             self.robot.motors.motors(sp + int(errore*kp), sp - int(errore*kp))
+            
+            if striscia[1] > self.ALTEZZA//2 and diocan < 5:
+                print("diocan",diocan)
+                self.robot.motors.motors(-50,-50)
+                time.sleep(1.5)
+                self.robot.motors.motors(50,50)
+                diocan +=1
+                
             
             if striscia[1] > self.ALTEZZA-50 and cam_linea is False:
                 striscia_bassa_counter += 1
@@ -456,7 +466,7 @@ class EZ:
             else:
                 striscia_bassa_counter = 0
             if cam_linea_time_start is not None: print(time.time() - cam_linea_time_start)
-            if cam_linea_time_start is not None and time.time() - cam_linea_time_start > 3:
+            if cam_linea_time_start is not None and time.time() - cam_linea_time_start > 2:
                 return True
             
             cv2.circle(frame, striscia, 5, (100, 220, 255), 3)
@@ -478,34 +488,37 @@ class EZ:
         last_30_mesures = []
         while True:
             frame = self.robot.get_frame().copy()
+            self.output = frame.copy()
+            
             self.giro_bordi(frame, 'basso')
             tof_dx = self.robot.get_tof_mesures()[1]
 
             # lista massimo 30 elementi rimuovo il primo e aggiungo alla fine
             last_30_mesures.append(tof_dx)
-            if len(last_30_mesures) <= 15:
+            if len(last_30_mesures) <= 11:
                 continue # lista non ancora a 30
             last_30_mesures.pop(0)
             
             # ultima misura e media ultime misure
-            last_mesure = last_30_mesures[13]
+            last_mesure = last_30_mesures[9]
             last_30_average = np.mean(last_30_mesures)
             print("[USCITA] differenza distanza", last_mesure - last_30_average)
             # se l'ultima misura è molto grande rispetto la media allora c'è il buco
             if last_mesure - last_30_average > 3000:
                 last_30_mesures = []
                 # if self.trova_buco_uscita():
-                self.robot.motors.motors(60,60)
+                self.robot.motors.motors(-60,-60)
                 time.sleep(1)
                 self.robot.motors.motors(60,-60)
                 time.sleep(1.7)
                 if self.controllo_tipo_uscita():
+                    self.robot.servo.pinza_su()
                     self.robot.motors.motors(0, 0)
                     self.robot.camstream_linea()
                     self.robot.servo.cam_linea()
                     time.sleep(1)
                     break
-            
+            cv2.imshow("output", self.output)
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
                 self.robot.motors.motors(0, 0)

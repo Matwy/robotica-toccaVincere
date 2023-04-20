@@ -33,8 +33,11 @@ def stop_script():
     # Send a SIGTERM signal to the process with the given PID
     global pid
     if pid:
-        arduinoi2c.write(bytes([0,0]))
-        arduinoi2c.write(bytes([1,0]))
+        try:
+            arduinoi2c.write(bytes([0,0]))
+            arduinoi2c.write(bytes([1,0]))
+        except:
+            print("un casino for real")
         os.kill(pid, signal.SIGTERM)
 
 print ("[LEVA] Waiting")

@@ -152,7 +152,7 @@ def trova_linea(robot):
             sp, kp, kd = -30, 1, 1.5
             errore_linea = centro_linea - (LARGHEZZA//2)
             P, D= int(errore_linea*kp), -int(angle*kd)
-            print("[GAP] linea", errore_linea, "  angolo", angle)
+            # print("[GAP] linea", errore_linea, "  angolo", angle)
             robot.motors.motors(sp - (P+D), sp + (P+D))
 
             if abs(errore_linea) > 40:
@@ -256,7 +256,7 @@ def gap(robot):
         # cv2.circle(frame, (centro_linea,ALTEZZA), 10, (190, 170, 200), -1)
         # uso una correzione proporzionale per centrarmi
         sp, kp, kd = 40, 1.5, 2
-        print("[GAP] angolo", angle)
+        # print("[GAP] angolo", angle)
         errore_linea = centro_linea - (LARGHEZZA//2)
         P, D= int(errore_linea*kp), int(angle*kd)
         robot.motors.motors(sp + (P+D), sp - (P+D))

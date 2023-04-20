@@ -102,12 +102,16 @@ class Servo:
         time.sleep(0.3)
         self.morti.angle = 180
         """
+        self.vivi.angle = 12
+        time.sleep(0.3)
+        self.vivi.angle = 0
+        time.sleep(0.2)
         self.becco_sx.angle = 115
         time.sleep(0.3)
         for i in range(3):
             self.becco_dx.angle = 60
             time.sleep(0.2)
-            self.becco_dx.angle = 30
+            self.becco_dx.angle = 40
             time.sleep(0.2)        
         
         self.pinza_svuota_cassoni()

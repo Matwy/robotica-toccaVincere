@@ -26,6 +26,10 @@ def raggiungi_ostacolo(robot):
             ostacolo_vicino_count = 0
         print("[OSTACOLO] front_tof:", front_tof_measure)
         robot.motors.motors(40, 40)
+    
+    robot.motors.motors(-40, -40)
+    time.sleep(0.2)
+    robot.motors.motors(0, 0)
     return True
 
 def ostacolo(robot, _dir = 1):
@@ -44,14 +48,14 @@ def ostacolo(robot, _dir = 1):
         print("side_tof", side_tof)
         if side_tof < 200:
             if _dir == 1:
-                robot.motors.motors(30, 80)
+                robot.motors.motors(25, 80)
             else:
-                robot.motors.motors(80, 30)
+                robot.motors.motors(80, 20)
         else:
             if _dir == 1:
-                robot.motors.motors(50, 80)
+                robot.motors.motors(40, 80)
             else:
-                robot.motors.motors(80, 50)
+                robot.motors.motors(80, 40)
                 
         time.sleep(0.05)
 
@@ -62,8 +66,12 @@ def ostacolo(robot, _dir = 1):
         mask_nero, _, _ =  scan(roi)
         non_zeri = np.count_nonzero(mask_nero)
         print("ostacolo", non_zeri)
-        if time.time() - t_inizio_ostacolo > 1 and non_zeri > 1000:
-            robot.motors.motors(50, 50)
+        if time.time() - t_inizio_ostacolo > 1 and non_zeri > 800:
+            if _dir == 1:
+                robot.motors.motors(60, 40)
+            else:
+                robot.motors.motors(40, 60)
+                
             time.sleep(1.7)
             robot.motors.motors(50*_dir, -50*_dir)
             time.sleep(0.9)

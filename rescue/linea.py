@@ -66,6 +66,7 @@ def linea(frame, robot):
     """
     if n_aree_bianche > 2:
         #trovo centor incrocio e lo mostro
+        print("[LINEA] Nuovo Incrocio")
         incrocio = Incrocio(robot).loop_centra_incrocio()
         errore_basso_x = robot.last_punto_basso[0] - (LARGHEZZA//2)
         errore_basso_y = ALTEZZA - robot.last_punto_basso[1]
