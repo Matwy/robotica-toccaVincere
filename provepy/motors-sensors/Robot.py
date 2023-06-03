@@ -23,7 +23,7 @@ class Robot():
     def camstream_EZ(self):
         self.cam_stream.stop()
         time.sleep(0.3)
-        self.cam_stream = PiVideoStream.PiVideoStream(framerate=7, resolution=(160, 128)).start()
+        self.cam_stream = PiVideoStream.PiVideoStream(framerate=7, resolution=(320, 240)).start()
     
     def camstream_linea(self):
         self.cam_stream.stop()

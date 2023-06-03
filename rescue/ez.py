@@ -38,7 +38,7 @@ class EZ:
         
         # change camera settings
         self.robot.camstream_EZ()
-        time.sleep(1)
+        time.sleep(2)
         self.LARGHEZZA, self.ALTEZZA = robot.cam_stream.camera.resolution
         
         self.pinza_su = True
@@ -48,6 +48,8 @@ class EZ:
         self.triangolo_rosso = 0
         self.triangolo_verde = 0
         
+        robot.motors.motors(60, -60)
+        time.sleep(0.4)
         robot.motors.motors(0, 0)
     
     def giro_bordi(self, frame, mode):
@@ -280,12 +282,9 @@ class EZ:
             time.sleep(2)
             self.robot.motors.motors(-40, -40)
             time.sleep(2)
-            self.robot.motors.motors(-80, 80)
-            time.sleep(2.2)
-            if self.tipo_triangolo < 0:
-                self.robot.motors.motors(-60, -40)
-            else:
-                self.robot.motors.motors(-40, -60)
+            self.robot.motors.motors(-70, 70)
+            time.sleep(2.5)
+            self.robot.motors.motors(-50, -50)
             time.sleep(3)
             self.robot.servo.pinza_svuota_cassoni()
                 
@@ -419,7 +418,7 @@ class EZ:
         t_inizio = time.time()
         # self.robot.motors.motors(30, 30)
         self.robot.servo.cam_uscita_EZ()
-        time.sleep(0.5)
+        time.sleep(1.5)
         
         striscia_persa_counter = 0
         striscia_bassa_counter = 0
@@ -452,7 +451,7 @@ class EZ:
             if striscia[1] > self.ALTEZZA//2 and diocan < 5:
                 print("diocan",diocan)
                 self.robot.motors.motors(-50,-50)
-                time.sleep(1.5)
+                time.sleep(0.2)
                 self.robot.motors.motors(50,50)
                 diocan +=1
                 
@@ -507,10 +506,12 @@ class EZ:
             if last_mesure - last_30_average > 3000:
                 last_30_mesures = []
                 # if self.trova_buco_uscita():
-                self.robot.motors.motors(-60,-60)
+                self.robot.motors.motors(0,-60)
                 time.sleep(1)
                 self.robot.motors.motors(60,-60)
-                time.sleep(1.7)
+                time.sleep(1.5)
+                self.robot.motors.motors(60,60)
+                time.sleep(0.8)
                 if self.controllo_tipo_uscita():
                     self.robot.servo.pinza_su()
                     self.robot.motors.motors(0, 0)

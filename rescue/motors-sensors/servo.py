@@ -102,6 +102,7 @@ class Servo:
         time.sleep(0.3)
         self.morti.angle = 180
         """
+        self.morti.angle = 170
         self.vivi.angle = 12
         time.sleep(0.3)
         self.vivi.angle = 0
@@ -116,16 +117,17 @@ class Servo:
         
         self.pinza_svuota_cassoni()
         self.vivi.angle = 0
+        self.morti.angle = 180
         
     """
     CASSONI
     """
     def vivi_default(self):
-        self.vivi.angle = 0
+        self.vivi.angle = 10
     def vivi_svuota(self):
-        self.vivi.angle = 110
+        self.vivi.angle = 105
         
     def morti_default(self):
-        self.morti.angle = 180
+        self.morti.angle = 170
     def morti_svuota(self):
-        self.morti.angle = 85
+        self.morti.angle = 90

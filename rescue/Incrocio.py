@@ -115,7 +115,7 @@ class Incrocio:
     def centra_incrocio(self):
         # centra l'incrocio in modo proporzionale
         errore_x = self.centro[0] - (LARGHEZZA//2)
-        errore_y = (ALTEZZA//2)+25 - self.centro[1]
+        errore_y = (ALTEZZA//2)+15 - self.centro[1]
         Px = int(errore_x*1.3)
         Py = int(errore_y*0.7)
         if errore_y > 0:

@@ -21,7 +21,7 @@ while True:
     
     if key == ord("p"):
         count += 1
-        cv2.imwrite((str(count)) +'.jpg', frame)
+        cv2.imwrite((str(count)) +'cacata.jpg', frame)
 
     if key == ord("q"):
         robot.motors.motors(0, 0)

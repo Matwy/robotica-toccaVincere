@@ -32,6 +32,7 @@ class sensors_stream:
             #time.sleep(0.5)
             time.sleep(0.02)
             self.vl53.insert(i, VL53L0X(self.i2c))  # also performs VL53L0X hardware check
+            self.vl53[i].start_continous()
             time.sleep(0.02)
             # no need to change the address of the last VL53L0X sensor
             if i < len(self.xshut) - 1:
