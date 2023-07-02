@@ -12,7 +12,7 @@ class Servo:
         i2c_bus = busio.I2C(SCL, SDA)
         self.pca = PCA9685(i2c_bus)
         self.pca.frequency = self.FREQUENCY_HZ
-        self.braccio_sx = servo.Servo(self.pca.channels[1])
+        self.braccio_sx = servo.Servo(self.pca.channels[1], max_pulse=2180)
         self.braccio_dx = servo.Servo(self.pca.channels[2])
         self.becco_sx = servo.Servo(self.pca.channels[10])
         self.becco_dx = servo.Servo(self.pca.channels[8])
@@ -46,8 +46,6 @@ class Servo:
     def cam_EZ(self):
         self.set_cam_angle(102)
     
-    def cam_uscita_EZ(self):
-        self.set_cam_angle(55)
     
     """
     PINZA
@@ -66,7 +64,7 @@ class Servo:
         self.set_pinza_angle(158)
         
     def pinza_giu(self):
-        self.set_pinza_angle(0)
+        self.set_pinza_angle(10)
 
     def pinza_salita(self):
         self.set_pinza_angle(30)
@@ -78,12 +76,12 @@ class Servo:
     BOCCHI
     """
     def becco_aperto(self):
-        self.becco_sx.angle = 115
+        self.becco_sx.angle = 170
         self.becco_dx.angle = 0
         
     def becco_chiuso(self):
-        self.becco_sx.angle = 60
-        self.becco_dx.angle = 60
+        self.becco_sx.angle = 50
+        self.becco_dx.angle = 120
     
     def becco_molla_morti(self):
         self.becco_dx.angle = 0
@@ -123,7 +121,7 @@ class Servo:
     CASSONI
     """
     def vivi_default(self):
-        self.vivi.angle = 10
+        self.vivi.angle = 15
     def vivi_svuota(self):
         self.vivi.angle = 105
         

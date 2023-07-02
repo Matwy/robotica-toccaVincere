@@ -70,7 +70,7 @@ class EZ:
         if mode == 'alto':
             roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
         elif mode == 'basso':
-            roi_pt1, roi_pt2 = (0, 100), (self.LARGHEZZA, 105)
+            roi_pt1, roi_pt2 = (0, 105), (self.LARGHEZZA, 110)
         else:
             roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
             
@@ -94,6 +94,7 @@ class EZ:
         else:
             # sinistra pott
             if mode == 'basso':
+                print("[EZ girobordi basso] pottt")
                 self.robot.motors.motors(-20, 30)
             else:
                 self.robot.motors.motors(-70, 90)
@@ -414,15 +415,15 @@ class EZ:
         return striscia_x, striscia_y
     
     def controllo_tipo_uscita(self):
-        self.robot.motors.motors(20,20)
+        self.robot.motors.motors(0,0)
         t_inizio = time.time()
         # self.robot.motors.motors(30, 30)
-        self.robot.servo.cam_uscita_EZ()
+        self.robot.servo.set_cam_angle(60)
         time.sleep(1.5)
         
         striscia_persa_counter = 0
         striscia_bassa_counter = 0
-        cam_linea = False
+        cam_angle = 50
         cam_linea_time_start = None
         diocan = 0
         while True:
@@ -430,7 +431,6 @@ class EZ:
             
             striscia_mask = self.detect_striscia_uscita(frame)
             
-            # if cam_linea:
             end_point_mask = striscia_mask[0:30, :]
             end_point = self.centro_striscia(end_point_mask)
             striscia = self.centro_striscia(striscia_mask)
@@ -440,45 +440,13 @@ class EZ:
                 striscia_persa_counter += 1
                 continue
             striscia_persa_counter = 0
-                
-            print("strisciay", striscia[1])
-            if end_point is None:
-                end_point = (self.LARGHEZZA//2, 0)
-            sp, kp = 90, 1
-            errore = end_point[0] - (self.LARGHEZZA//2)
-            self.robot.motors.motors(sp + int(errore*kp), sp - int(errore*kp))
-            
-            if striscia[1] > self.ALTEZZA//2 and diocan < 5:
-                print("diocan",diocan)
-                self.robot.motors.motors(-50,-50)
-                time.sleep(0.2)
-                self.robot.motors.motors(50,50)
-                diocan +=1
-                
-            
-            if striscia[1] > self.ALTEZZA-50 and cam_linea is False:
-                striscia_bassa_counter += 1
-                if striscia_bassa_counter > 5:
-                    cam_linea = True
-                    cam_linea_time_start = time.time()
-                    self.robot.servo.cam_linea()
-            else:
-                striscia_bassa_counter = 0
-            if cam_linea_time_start is not None: print(time.time() - cam_linea_time_start)
-            if cam_linea_time_start is not None and time.time() - cam_linea_time_start > 2:
-                return True
-            
+                            
             cv2.circle(frame, striscia, 5, (100, 220, 255), 3)
-            cv2.imshow("trova_striscia", striscia_mask)
+            cv2.imshow("trova_striscia", frame)
             key = cv2.waitKey(1) & 0xFF
             if self.robot.cavo_sinistra.is_pressed or self.robot.cavo_destra.is_pressed:
                 break
             
-        self.robot.motors.motors(-100,-60)
-        time.sleep(1.5)
-        self.robot.motors.motors(-70, 70)
-        time.sleep(2)
-        self.robot.servo.cam_EZ()
         return False
         
 
@@ -502,16 +470,22 @@ class EZ:
             last_mesure = last_30_mesures[9]
             last_30_average = np.mean(last_30_mesures)
             print("[USCITA] differenza distanza", last_mesure - last_30_average)
+            print("[USCITA]  distanza", last_mesure)
             # se l'ultima misura è molto grande rispetto la media allora c'è il buco
-            if last_mesure - last_30_average > 3000:
+            if last_mesure > 600:
                 last_30_mesures = []
-                # if self.trova_buco_uscita():
-                self.robot.motors.motors(0,-60)
-                time.sleep(1)
+
+                self.robot.motors.motors(60, 60)
+                time.sleep(0.5)
+
                 self.robot.motors.motors(60,-60)
-                time.sleep(1.5)
-                self.robot.motors.motors(60,60)
-                time.sleep(0.8)
+                time.sleep(0.7)
+                self.robot.servo.pinza_giu()
+                self.robot.motors.motors(60,-60)
+                time.sleep(1)
+                
+                
+                
                 if self.controllo_tipo_uscita():
                     self.robot.servo.pinza_su()
                     self.robot.motors.motors(0, 0)
