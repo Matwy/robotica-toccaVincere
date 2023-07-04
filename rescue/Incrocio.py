@@ -45,7 +45,7 @@ class Incrocio:
         return None
 
 
-    MODELLO_VERDE = 'verde_ef0.tflite' # le mie non le vittime
+    MODELLO_VERDE = 'green.tflite' # le mie non le vittime
 
     def __init__(self, robot):
         self.robot = robot
@@ -210,7 +210,7 @@ class Incrocio:
                 self.robot.motors.motors(0,0)
                 self.robot.servo.pinza_su()
                 raw_verdi = self.get_verdi_with_tensor(self.robot.get_frame().copy())
-                
+                print(raw_verdi)
                 # cv2.imshow('output', self.output)
                 # cv2.waitKey(1)
                 # time.sleep(5)

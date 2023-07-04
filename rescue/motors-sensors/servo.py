@@ -83,6 +83,12 @@ class Servo:
         self.becco_sx.angle = 50
         self.becco_dx.angle = 120
     
+            
+    def becco_raccolta(self):
+        self.becco_sx.angle = 85
+        self.becco_dx.angle = 85
+    
+    
     def becco_molla_morti(self):
         self.becco_dx.angle = 0
         for i in range(5):
@@ -92,30 +98,14 @@ class Servo:
             time.sleep(0.2)
     
     def becco_molla_vivi(self):
-        """
-        self.morti.angle = 155
-        self.becco_sx.angle = 115
-        
-        self.vivi.angle = 5
-        time.sleep(0.3)
-        self.morti.angle = 180
-        """
-        self.morti.angle = 170
-        self.vivi.angle = 12
-        time.sleep(0.3)
-        self.vivi.angle = 0
-        time.sleep(0.2)
-        self.becco_sx.angle = 115
+
+        self.becco_sx.angle = 170
         time.sleep(0.3)
         for i in range(3):
-            self.becco_dx.angle = 60
+            self.becco_dx.angle = 120
             time.sleep(0.2)
-            self.becco_dx.angle = 40
-            time.sleep(0.2)        
-        
-        self.pinza_svuota_cassoni()
-        self.vivi.angle = 0
-        self.morti.angle = 180
+            self.becco_dx.angle = 100
+            time.sleep(0.2)
         
     """
     CASSONI

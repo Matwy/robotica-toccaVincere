@@ -59,10 +59,10 @@ def raggiungi_cubo(robot):
             robot.motors.motors(0, 0)
             robot.servo.becco_chiuso()
             time.sleep(0.3)
-            print("[CUBO] indrio")
             robot.servo.pinza_su_max()
-            time.sleep(0.5)
+            time.sleep(1)
             robot.servo.becco_molla_vivi()
+            time.sleep(0.5)
 
             durata = t_fine- t_inizio
             print(durata)

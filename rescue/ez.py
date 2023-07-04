@@ -7,13 +7,13 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
-from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point, get_bigger_component
+from cvtools import scan_bordi, sort_aree, get_nearest_countourn_point, get_bigger_component, scan, get_nearest_area_from_2points
 class EZ:
     Y_ABBASSA_BRACCIO = 50
     Y_BECCO_SOPRA = 83
     Y_BECCO_SOTTO = 110
-    MODELLO_PALLE = 'giugia_pestami_le_palle.tflite' # le mie non le vittime
-    MODELLO_TRIANGOLI = 'giugia_leccami_il_triangolo.tflite'
+    MODELLO_PALLE = 'model_4.tflite' # le mie non le vittime
+    MODELLO_TRIANGOLI = 'triangoli.tflite'
     
     def __init__(self, robot):
         robot.motors.motors(60, 60) # entra un po' durante il setup
@@ -21,7 +21,7 @@ class EZ:
 
         # Initialize the object detection model
         base_options = core.BaseOptions(file_name=self.MODELLO_PALLE, use_coral=False, num_threads=4)
-        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.25)
+        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.70)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_palle = vision.ObjectDetector.create_from_options(options)
         
@@ -68,7 +68,7 @@ class EZ:
         
         if area_bassa is None: return
         if mode == 'alto':
-            roi_pt1, roi_pt2 = (0, 70), (self.LARGHEZZA, 75)
+            roi_pt1, roi_pt2 = (0, 65), (self.LARGHEZZA, 70)
         elif mode == 'basso':
             roi_pt1, roi_pt2 = (0, 105), (self.LARGHEZZA, 110)
         else:
@@ -151,9 +151,12 @@ class EZ:
                 return
             self.robot.motors.motors(0, 0)
             self.robot.servo.pinza_giu()
-            self.robot.servo.becco_aperto()
+            self.robot.servo.becco_raccolta()
             self.pinza_su = False
-        
+        if ball_y > self.Y_BECCO_SOPRA and abs(errore_x) > 10 and not self.pinza_su:
+            # palla troppo sotto e fuori dal becco
+            self.robot.motors.motors(-40, -40)
+            
         if ball_y > self.Y_BECCO_SOPRA and ball_y < self.Y_BECCO_SOTTO and abs(errore_x) < 10 and not self.pinza_su:
             # raccogli palla se è dentro i becchi e al centro dello schermo e la pinza è giu
             self.robot.motors.motors(40, 40)
@@ -163,13 +166,13 @@ class EZ:
             self.robot.motors.motors(-35, -35)
             self.robot.servo.pinza_su()
             time.sleep(1)
-            if tipo_palla <= 0: # distinzione morte vive
+            if tipo_palla >= 0: # distinzione morte vive
                 self.robot.servo.becco_molla_morti()
                 self.palline_morte += 1
             else:
                 self.robot.servo.becco_molla_vivi()
                 self.palline_vive += 1
-            self.robot.servo.becco_aperto()
+            self.robot.servo.becco_raccolta()
             self.pinza_su = True
             return 'raccolta'
     
@@ -227,6 +230,7 @@ class EZ:
         # add to array and draw triangolo on the frame
         triangoli = []
         for d in detection_result.detections:
+            print(d)
             x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
             triangoli.append((x,y,w,h, index))
             cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,0), 1)
@@ -239,6 +243,10 @@ class EZ:
     
     def raggiungi_triangolo(self, triangolo):
         speed = 90
+        if self.triangolo_verde == 0 and triangolo[-1] == 1:
+            self.robot.motors.motors(-50,50)    
+            return
+        
         errore_x = triangolo[0] + (triangolo[2]//2) - (self.LARGHEZZA//2)
         self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
         # controllo che la y+h del triangolo sia bassa quindi vicina al robot
@@ -281,23 +289,35 @@ class EZ:
             
             self.robot.motors.motors(50, 50)
             time.sleep(2)
-            self.robot.motors.motors(-40, -40)
-            time.sleep(2)
-            self.robot.motors.motors(-70, 70)
-            time.sleep(2.5)
-            self.robot.motors.motors(-50, -50)
-            time.sleep(3)
             self.robot.servo.pinza_svuota_cassoni()
                 
             if self.tipo_triangolo <= 0:
-                self.robot.motors.motors(-30, -30)
-                time.sleep(1.5)
+                self.robot.motors.motors(60, -60)
+                time.sleep(2)
+                self.robot.motors.motors(-25, -50)
+                time.sleep(2.5)
+                self.robot.motors.motors(-30, 50)
+                time.sleep(1.5)  
+                self.robot.motors.motors(40, 40)
+                time.sleep(2)  
+                self.robot.motors.motors(0, 0)
+                time.sleep(2)
+                
                 self.robot.servo.vivi_svuota()
                 self.triangolo_verde += 1
                 self.tipo_triangolo = 0
             elif self.triangolo_verde >= 1 and self.tipo_triangolo > 0:
-                self.robot.motors.motors(-25, -30)
-                time.sleep(1.5)
+                self.robot.motors.motors(-60, 60)
+                time.sleep(2)
+                self.robot.motors.motors(-50, -35)
+                time.sleep(2.5)
+                self.robot.motors.motors(50, -30)
+                time.sleep(1.5)  
+                self.robot.motors.motors(40, 40)
+                time.sleep(2)  
+                self.robot.motors.motors(0, 0)
+                time.sleep(2)
+                
                 self.robot.servo.morti_svuota()
                 self.tipo_triangolo = 0
                 self.triangolo_rosso += 1
@@ -399,12 +419,13 @@ class EZ:
     def detect_striscia_uscita(self, frame):
         gray_scale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #grigio
         blur = cv2.GaussianBlur(gray_scale, (7,7), 5) #sfuoca
-        ret, bianco = cv2.threshold(blur,255-190,255,cv2.THRESH_BINARY) # bianco da threshold
+        ret, bianco = cv2.threshold(blur,255-160,255,cv2.THRESH_BINARY) # bianco da threshold
         nero = cv2.bitwise_not(bianco) # inverti per avere il nero
         nero =cv2.erode(nero,np.ones((7,7), np.uint8),iterations=1) # erodi per togliere il noise
         cv2.rectangle(nero, (0, 0), (20, 20), (0), -1)  # togli le ombre che ci sono in alto
         cv2.rectangle(nero, (self.LARGHEZZA-20, 0), (self.LARGHEZZA, 20), (0), -1)
         striscia = get_bigger_component(nero) # prendi la roba più grande
+        cv2.imshow("nero bin",striscia)
         return striscia
     
     def centro_striscia(self, striscia):
@@ -416,37 +437,38 @@ class EZ:
     
     def controllo_tipo_uscita(self):
         self.robot.motors.motors(0,0)
-        t_inizio = time.time()
-        # self.robot.motors.motors(30, 30)
-        self.robot.servo.set_cam_angle(60)
-        time.sleep(1.5)
         
         striscia_persa_counter = 0
-        striscia_bassa_counter = 0
-        cam_angle = 50
-        cam_linea_time_start = None
-        diocan = 0
+        t_inizio = time.time()
         while True:
             frame = self.robot.get_frame().copy()
             
-            striscia_mask = self.detect_striscia_uscita(frame)
+            mask_nero, mask_bianco, mask_verde = scan(frame)
+            mask_nearest_area = get_nearest_area_from_2points(mask_nero, (136//2, 0), (136//2, 137))
+            cut = mask_nearest_area[0:10, :]                        
+            end_point = self.centro_striscia(cut)
             
-            end_point_mask = striscia_mask[0:30, :]
-            end_point = self.centro_striscia(end_point_mask)
-            striscia = self.centro_striscia(striscia_mask)
             if striscia_persa_counter >= 2000:
                 break
-            if striscia is None:
+            if end_point is None:
                 striscia_persa_counter += 1
                 continue
             striscia_persa_counter = 0
-                            
-            cv2.circle(frame, striscia, 5, (100, 220, 255), 3)
+            
+            errore_linea = end_point[0] - (136//2)
+            P = int(errore_linea*1)
+            self.robot.motors.motors(25 + P, 25 - P)
+        
+            cv2.circle(frame, end_point, 5, (100, 0, 255), 3)
             cv2.imshow("trova_striscia", frame)
             key = cv2.waitKey(1) & 0xFF
             if self.robot.cavo_sinistra.is_pressed or self.robot.cavo_destra.is_pressed:
                 break
-            
+            if time.time() - t_inizio > 3.5:
+                return True
+        self.robot.motors.motors(0,0)
+        self.robot.camstream_EZ()
+        time.sleep(1)
         return False
         
 
@@ -480,18 +502,15 @@ class EZ:
 
                 self.robot.motors.motors(60,-60)
                 time.sleep(0.7)
-                self.robot.servo.pinza_giu()
                 self.robot.motors.motors(60,-60)
                 time.sleep(1)
-                
-                
+                self.robot.motors.motors(0, 0)
+                self.robot.camstream_linea()
+                self.robot.servo.cam_linea()
+                time.sleep(1)
                 
                 if self.controllo_tipo_uscita():
-                    self.robot.servo.pinza_su()
                     self.robot.motors.motors(0, 0)
-                    self.robot.camstream_linea()
-                    self.robot.servo.cam_linea()
-                    time.sleep(1)
                     break
             cv2.imshow("output", self.output)
             key = cv2.waitKey(1) & 0xFF
