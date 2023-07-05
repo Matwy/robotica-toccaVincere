@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from global_var import ALTEZZA, LARGHEZZA
-from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_valid_verdi, get_n_aree_biance, get_nearest_countourn_point
+from cvtools import scan, get_bigger_area, get_centri_aree, get_collisioni_with_angles, calcola_inizio_linea, get_valid_verdi, get_n_aree_biance, get_nearest_countourn_point, isRosso
 import time
 from tflite_support.task import core
 from tflite_support.task import processor
@@ -137,6 +137,15 @@ class Incrocio:
             self.output[mask_nero == 255] = 0
             self.output[mask_verde == 255] = (0,255,0)
             
+            if isRosso(frame.copy()):
+                self.robot.rosso_count += 1
+            else:
+                self.robot.rosso_count = 0
+        
+            if self.robot.rosso_count > 30:
+                self.robot.motors.motors(0,0)
+                time.sleep(6)
+                
             amount_bianco, labels_bianco = cv2.connectedComponents(mask_bianco)
             n_aree_bianche_senza_loli = get_n_aree_biance(amount_bianco, labels_bianco)
             # CENTRO INCROCIO 

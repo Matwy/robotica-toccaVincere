@@ -257,7 +257,7 @@ class EZ:
             
         if self.triangolo_vicino_counter > 5:
             
-            if self.robot.get_tof_mesures()[1] < 300:
+            if self.robot.get_tof_mesures()[1] < 200:
                 # robot troppo vicino al muro di destra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
                 time.sleep(1.5)
@@ -272,7 +272,7 @@ class EZ:
                 self.triangolo_vicino_counter = 0
                 return
 
-            if self.robot.get_tof_mesures()[0] < 300:
+            if self.robot.get_tof_mesures()[0] < 200:
                 # robot troppo vicino al muro di sinistra quindi fai manovra
                 self.robot.motors.motors(-50, -50)
                 time.sleep(1.5)
@@ -300,10 +300,11 @@ class EZ:
                 time.sleep(1.5)  
                 self.robot.motors.motors(40, 40)
                 time.sleep(2)  
-                self.robot.motors.motors(0, 0)
-                time.sleep(2)
                 
                 self.robot.servo.vivi_svuota()
+                time.sleep(1)
+                self.robot.motors.motors(60, -50)
+                
                 self.triangolo_verde += 1
                 self.tipo_triangolo = 0
             elif self.triangolo_verde >= 1 and self.tipo_triangolo > 0:
@@ -316,9 +317,11 @@ class EZ:
                 self.robot.motors.motors(40, 40)
                 time.sleep(2)  
                 self.robot.motors.motors(0, 0)
-                time.sleep(2)
                 
                 self.robot.servo.morti_svuota()
+                time.sleep(1)
+                self.robot.motors.motors(-50, 60)
+                
                 self.tipo_triangolo = 0
                 self.triangolo_rosso += 1
             time.sleep(1)
@@ -445,7 +448,7 @@ class EZ:
             
             mask_nero, mask_bianco, mask_verde = scan(frame)
             mask_nearest_area = get_nearest_area_from_2points(mask_nero, (136//2, 0), (136//2, 137))
-            cut = mask_nearest_area[0:10, :]                        
+            cut = mask_nearest_area[0:20, :]                        
             end_point = self.centro_striscia(cut)
             
             if striscia_persa_counter >= 2000:
@@ -466,9 +469,13 @@ class EZ:
                 break
             if time.time() - t_inizio > 3.5:
                 return True
-        self.robot.motors.motors(0,0)
+
+        self.robot.servo.cam_EZ()
         self.robot.camstream_EZ()
-        time.sleep(1)
+        self.robot.motors.motors(-50,-50)
+        time.sleep(2)
+        self.robot.motors.motors(-50, 50)
+        time.sleep(2)
         return False
         
 

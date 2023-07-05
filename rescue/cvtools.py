@@ -536,5 +536,4 @@ def isRosso(frame):
     rosso = cv2.dilate(rosso,KERNEL,iterations=2)
     
     n_rosso = np.count_nonzero(rosso)
-    # print(n_rosso)
     return n_rosso > 2000

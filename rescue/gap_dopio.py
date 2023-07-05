@@ -119,7 +119,6 @@ def trova_linea(robot):
     print("[GAP] BIANCHETTO")
     timer_alza_cam = time.time()
     avanti = True
-    rosso_count = 0
 
     while True:
         """ CHECK EZ """
@@ -133,13 +132,13 @@ def trova_linea(robot):
         
         """"CHECK ROSO"""
         if isRosso(frame):
-            rosso_count += 1
+            robot.rosso_count += 1
         else:
-            rosso_count = 0
+            robot.rosso_count = 0
         
-        if rosso_count > 5:
+        if robot.rosso_count > 30:
             robot.motors.motors(0,0)
-            # time.sleep(6)
+            time.sleep(6)
             
         centro_linea, angle = get_centro_linea(robot, frame)
         

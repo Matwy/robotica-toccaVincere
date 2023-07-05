@@ -18,6 +18,7 @@ class Robot():
         self.cavo_destra = Button(19)
         self.last_punto_alto = (136//2, 0)
         self.last_punto_basso = (136//2, 137)
+        self.rosso_count = 0
             
     def get_tof_mesures(self):
         try:

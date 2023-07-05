@@ -92,13 +92,12 @@ def rescue(robot):
         ROSSO
         """
         if isRosso(frame):
-            rosso_count += 1
+            robot.rosso_count += 1
         else:
-            rosso_count = 0
+            robot.rosso_count = 0
         
-        if rosso_count > 15:
+        if robot.rosso_count > 30:
             robot.motors.motors(0,0)
-            print("[ROSSO] rosso")
             time.sleep(6)
         
         cv2.imshow("frame", frame)
@@ -123,10 +122,10 @@ if __name__ == '__main__':
     # robot.servo.becco_raccolta()
     # robot.servo.becco_chiuso()
 
-    ez = EZ(robot)
+    # ez = EZ(robot)
     # ez.loop_palle()
     # ez.loop_triangoli()
-    ez.loop_uscita()
+    # ez.loop_uscita()
 
     # while True:
         # print(robot.get_tof_mesures())
@@ -138,4 +137,4 @@ if __name__ == '__main__':
 
     # robot.servo.becco_raccolta()
 
-    # rescue(robot)
+    rescue(robot)
