@@ -141,8 +141,9 @@ class Incrocio:
                 self.robot.rosso_count += 1
             else:
                 self.robot.rosso_count = 0
-        
-            if self.robot.rosso_count > 30:
+            print(self.robot.rosso_count)
+            
+            if self.robot.rosso_count > 10:
                 self.robot.motors.motors(0,0)
                 time.sleep(6)
                 

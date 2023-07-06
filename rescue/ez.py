@@ -14,9 +14,10 @@ class EZ:
     Y_BECCO_SOTTO = 110
     MODELLO_PALLE = 'model_4.tflite' # le mie non le vittime
     MODELLO_TRIANGOLI = 'triangoli.tflite'
+    MODELLO_USCITA = 'android.tflite'
     
     def __init__(self, robot):
-        robot.motors.motors(60, 60) # entra un po' durante il setup
+        robot.motors.motors(90, 90) # entra un po' durante il setup
         cv2.destroyAllWindows()
 
         # Initialize the object detection model
@@ -29,6 +30,11 @@ class EZ:
         detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.6)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self.detector_triangoli = vision.ObjectDetector.create_from_options(options)
+        
+        base_options = core.BaseOptions(file_name=self.MODELLO_USCITA, use_coral=False, num_threads=4)
+        detection_options = processor.DetectionOptions(max_results=3, score_threshold=0.80)
+        options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
+        self.detector_uscita = vision.ObjectDetector.create_from_options(options)
         
         self.robot = robot
         self.robot.servo.cam_EZ()
@@ -48,9 +54,31 @@ class EZ:
         self.triangolo_rosso = 0
         self.triangolo_verde = 0
         
+        
         robot.motors.motors(60, -60)
-        time.sleep(0.4)
+        time.sleep(2)
         robot.motors.motors(0, 0)
+        
+        self.timer_stuck = time.time()
+    
+    def check_if_stuck(self):
+        self.robot.motors.motors(0, 0)
+        time.sleep(1.5)
+
+        self.robot.motors.motors(-70, -70)
+        time.sleep(0.5)
+        self.robot.servo.cam_linea()
+        time.sleep(0.5)
+        self.robot.motors.motors(0, 0)
+
+        front_tof_mesure = self.robot.get_tof_mesures()[2]
+        self.robot.servo.cam_EZ()
+        if front_tof_mesure < 300:
+            self.robot.motors.motors(-70, 70)
+            time.sleep(1.5)
+            self.robot.motors.motors(0, 0)
+            return "iera bloca"
+            
     
     def giro_bordi(self, frame, mode):
         bordi = scan_bordi(frame)
@@ -188,6 +216,7 @@ class EZ:
             cv2.circle(self.output, (self.LARGHEZZA//2, self.Y_BECCO_SOPRA), 5, (0, 0, 255), -1)
             cv2.circle(self.output, (self.LARGHEZZA//2, self.Y_BECCO_SOTTO), 5, (0, 0, 255), -1)
             if ball:
+                self.timer_stuck = time.time() # reset timer (not stuck)
                 # PALLE 
                 palla_persa_count = 0
                 if ball[1] > self.Y_ABBASSA_BRACCIO:
@@ -200,6 +229,10 @@ class EZ:
                 tipo_palla = 0
                 mode_giro_bordi = 'alto' #if time.time() - t_inizio_ricerca < 20 else 'basso' 
                 self.giro_bordi(frame, mode_giro_bordi)
+                if time.time() - self.timer_stuck > 5:
+                    self.check_if_stuck()
+                    self.timer_stuck = time.time() # reset timer
+                    
             else:
                 self.robot.motors.motors(-30, -30)
                 palla_persa_count += 1
@@ -334,7 +367,6 @@ class EZ:
             self.robot.motors.motors(40, 0)
             time.sleep(2)
 
-
     def loop_triangoli(self):
         self.triangolo_vicino_counter = 0
         self.tipo_triangolo = 0
@@ -344,6 +376,8 @@ class EZ:
             
             triangolo = self.get_selected_triangolo(frame)
             if triangolo is not None:
+                self.timer_stuck = time.time() # reset timer (not stuck)
+                
                 self.tipo_triangolo += -1 if triangolo[-1] == 0 else 1
                 
                 centro_triangolo = (triangolo[0]+(triangolo[2]//2), triangolo[1]+(triangolo[3]//2))
@@ -361,6 +395,9 @@ class EZ:
                 self.tipo_triangolo = 0
                 mode_giro_bordi = 'altissimo' 
                 self.giro_bordi(frame, mode_giro_bordi)
+                if time.time() - self.timer_stuck > 5:
+                    self.check_if_stuck()
+                    self.timer_stuck = time.time() # reset timer
                 
             if self.triangolo_rosso >= 1 and self.triangolo_verde >= 1:
                 break
@@ -406,30 +443,26 @@ class EZ:
         """
         return True
     
-    def is_striscia_nera(self):
-        frame = self.robot.get_frame().copy()
-        cut = frame[self.ALTEZZA-30:self.ALTEZZA, 0:self.LARGHEZZA]
-        gray_scale = cv2.cvtColor(cut, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray_scale, (7,7), 5)
-        ret, nero = cv2.threshold(blur,255-190,255,cv2.THRESH_BINARY)
-        cv2.imshow("ernegro", nero)
-        nero_points = np.count_nonzero(nero==0)
-        print("non zero", nero_points)
-        if nero_points > 2500:
-            return True
-        return False 
+
+    def get_selected_uscita(self, frame):
+        # detect triangolo with tensor
+        rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        input_tensor = vision.TensorImage.create_from_array(rgb_image)
+        detection_result = self.detector_uscita.detect(input_tensor)
+        # add to array and draw triangolo on the frame
+        uscite = []
+        for d in detection_result.detections:
+            print(d)
+            x, y, w, h, index = d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height, d.categories[0].index
+            uscite.append((x,y,w,h, index))
+            cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,0), 1)
+        # return the bigger triangolo
+        if len(uscite) > 0:
+            uscite.sort(key=lambda b : b[2]*b[3], reverse=True)
+            x, y, w, h, _ = uscite[0]
+            cv2.rectangle(self.output, (x,y), (x+w, y+h), (255,0,255), 4)
+            return uscite[0]
     
-    def detect_striscia_uscita(self, frame):
-        gray_scale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #grigio
-        blur = cv2.GaussianBlur(gray_scale, (7,7), 5) #sfuoca
-        ret, bianco = cv2.threshold(blur,255-160,255,cv2.THRESH_BINARY) # bianco da threshold
-        nero = cv2.bitwise_not(bianco) # inverti per avere il nero
-        nero =cv2.erode(nero,np.ones((7,7), np.uint8),iterations=1) # erodi per togliere il noise
-        cv2.rectangle(nero, (0, 0), (20, 20), (0), -1)  # togli le ombre che ci sono in alto
-        cv2.rectangle(nero, (self.LARGHEZZA-20, 0), (self.LARGHEZZA, 20), (0), -1)
-        striscia = get_bigger_component(nero) # prendi la roba più grande
-        cv2.imshow("nero bin",striscia)
-        return striscia
     
     def centro_striscia(self, striscia):
         M = cv2.moments(striscia)
@@ -461,7 +494,6 @@ class EZ:
             errore_linea = end_point[0] - (136//2)
             P = int(errore_linea*1)
             self.robot.motors.motors(25 + P, 25 - P)
-        
             cv2.circle(frame, end_point, 5, (100, 0, 255), 3)
             cv2.imshow("trova_striscia", frame)
             key = cv2.waitKey(1) & 0xFF
@@ -478,47 +510,55 @@ class EZ:
         time.sleep(2)
         return False
         
-
+    def raggiungi_uscita(self, uscita):
+        
+        centro_uscita = (uscita[0]+(uscita[2]//2), uscita[1]+(uscita[3]//2))
+        errore_x = uscita[0] + (uscita[2]//2) - (self.LARGHEZZA//2)
+        
+        speed = 70
+        self.robot.motors.motors(speed + (errore_x), speed - (errore_x))
+        
+        # controllo che la y+h del uscita sia bassa quindi vicina al robot
+        print('[USCITA] y+h ', uscita[1]+uscita[3])
+        if uscita[1]+uscita[3] > 100:
+            self.uscita_vicina_counter += 1
+        else:
+            self.uscita_vicina_counter = 0
+            
+        if self.uscita_vicina_counter > 5:
+            self.robot.motors.motors(0,0)
+            return True
         
     def loop_uscita(self):
-        last_30_mesures = []
+        self.uscita_vicina_counter = 0
+        uscita_persa_count = 0
         while True:
-            frame = self.robot.get_frame().copy()
+            frame = self.robot.get_frame()
             self.output = frame.copy()
             
-            self.giro_bordi(frame, 'basso')
-            tof_dx = self.robot.get_tof_mesures()[1]
+            uscita = self.get_selected_uscita(frame)
 
-            # lista massimo 30 elementi rimuovo il primo e aggiungo alla fine
-            last_30_mesures.append(tof_dx)
-            if len(last_30_mesures) <= 11:
-                continue # lista non ancora a 30
-            last_30_mesures.pop(0)
-            
-            # ultima misura e media ultime misure
-            last_mesure = last_30_mesures[9]
-            last_30_average = np.mean(last_30_mesures)
-            print("[USCITA] differenza distanza", last_mesure - last_30_average)
-            print("[USCITA]  distanza", last_mesure)
-            # se l'ultima misura è molto grande rispetto la media allora c'è il buco
-            if last_mesure > 600:
-                last_30_mesures = []
+            if uscita:
+                # USCITA TROVATA
 
-                self.robot.motors.motors(60, 60)
-                time.sleep(0.5)
-
-                self.robot.motors.motors(60,-60)
-                time.sleep(0.7)
-                self.robot.motors.motors(60,-60)
-                time.sleep(1)
-                self.robot.motors.motors(0, 0)
-                self.robot.camstream_linea()
-                self.robot.servo.cam_linea()
-                time.sleep(1)
-                
-                if self.controllo_tipo_uscita():
+                if self.raggiungi_uscita(uscita):
+                    print("uscita trovata")
                     self.robot.motors.motors(0, 0)
-                    break
+                    self.robot.camstream_linea()
+                    self.robot.servo.cam_linea()
+                    time.sleep(1)
+                    if self.controllo_tipo_uscita():
+                        break
+                    
+            else:
+                # BORDI
+                self.uscita_vicina_counter = 0
+                tipo_uscita = 0
+                self.giro_bordi(frame, 'alto')
+                if time.time() - self.timer_stuck > 5:
+                    self.check_if_stuck()
+                    self.timer_stuck = time.time() # reset timer
+                
             cv2.imshow("output", self.output)
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):

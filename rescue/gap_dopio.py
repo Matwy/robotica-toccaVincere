@@ -136,7 +136,7 @@ def trova_linea(robot):
         else:
             robot.rosso_count = 0
         
-        if robot.rosso_count > 30:
+        if robot.rosso_count > 10:
             robot.motors.motors(0,0)
             time.sleep(6)
             
